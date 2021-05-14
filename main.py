@@ -49,7 +49,6 @@ def get_category_by_name(guild, category_name):
 async def create_text_channel(guild, channel_name, category_name):
     category = get_category_by_name(guild, category_name)
     channel = await guild.create_text_channel(channel_name, category=category)
-    #channel=get_channel_by_name(guild, channel_name)
     return channel, guild
 
 
@@ -81,21 +80,6 @@ async def send_embed(channel,title,description,colour=discord.Colour.blue(),imag
     embed.add_field(name=field.name, value=field.value, inline=field.inline)
   message=await channel.send(embed=embed)
   return message
-
-
-#async def reactRole(message,emoji, role: discord.Role=None):
-  #await message.add_reaction(emoji)
-  #with open('pvtRoles.json') as json_file:
-  #  data=json.load(json_file)
-  #  newRole={
-  #    'roleName':role.name,
-  #    'roleId':role.id,
-  #    'emoji':emoji,
-  #    'messageId':message.id
-  #  }
-  #  data.append(newRole)
-  #with open('pvtRoles.json','w') as j:
-  #  json.dump(data,j,indent=4)
 
 
 @client.event
