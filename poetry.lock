@@ -102,6 +102,40 @@ version = "5.1.0"
 
 [[package]]
 category = "main"
+description = "Python HTTP for Humans."
+name = "requests"
+optional = false
+python-versions = "*"
+version = "2.15.1"
+
+[package.extras]
+security = ["cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0.14)"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
+
+[[package]]
+category = "main"
+description = "A Python wrapper for the Rotten Tomatoes API v1.0"
+name = "rtsimple"
+optional = false
+python-versions = "*"
+version = "0.9.0"
+
+[package.dependencies]
+requests = ">=2.3.0"
+
+[[package]]
+category = "main"
+description = "A lightweight Python library for The Movie Database (TMDb) API."
+name = "tmdbv3api"
+optional = false
+python-versions = "*"
+version = "1.7.5"
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
+category = "main"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
 optional = false
@@ -120,8 +154,16 @@ version = "1.6.3"
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[[package]]
+category = "main"
+description = "YouTube video downloader"
+name = "youtube-dl"
+optional = false
+python-versions = "*"
+version = "2021.5.16"
+
 [metadata]
-content-hash = "5cbd644f7e7e4524b704d6470f6a6bf10d643917c60092dccf63cbddd52e3c19"
+content-hash = "67ace5df7b2b560ada4225df4c3c87a9cae2d9ceb1295fd9b11ef08db6418bee"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -231,6 +273,17 @@ multidict = [
     {file = "multidict-5.1.0-cp39-cp39-win_amd64.whl", hash = "sha256:7df80d07818b385f3129180369079bd6934cf70469f99daaebfac89dca288359"},
     {file = "multidict-5.1.0.tar.gz", hash = "sha256:25b4e5f22d3a37ddf3effc0710ba692cfc792c2b9edfb9c05aefe823256e84d5"},
 ]
+requests = [
+    {file = "requests-2.15.1-py2.py3-none-any.whl", hash = "sha256:ff753b2196cd18b1bbeddc9dcd5c864056599f7a7d9a4fb5677e723efa2b7fb9"},
+    {file = "requests-2.15.1.tar.gz", hash = "sha256:e5659b9315a0610505e050bb7190bf6fa2ccee1ac295f2b760ef9d8a03ebbb2e"},
+]
+rtsimple = [
+    {file = "rtsimple-0.9.0.tar.gz", hash = "sha256:cb51500560d3660ef9ac7f66a9689ea6e703ded236e8b0a3d308d332ebd6fe84"},
+]
+tmdbv3api = [
+    {file = "tmdbv3api-1.7.5-py2.py3-none-any.whl", hash = "sha256:c840041aacc26840d39e8d9e72406548715bd26bec2a145a1d35b48ac7a125c4"},
+    {file = "tmdbv3api-1.7.5.tar.gz", hash = "sha256:838ae4fbde5febd777e0d8c03d51751409bf9faa0795ca6e3405078ca4620c76"},
+]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},
     {file = "typing_extensions-3.10.0.0-py3-none-any.whl", hash = "sha256:779383f6086d90c99ae41cf0ff39aac8a7937a9283ce0a414e5dd782f4c94a84"},
@@ -274,4 +327,8 @@ yarl = [
     {file = "yarl-1.6.3-cp39-cp39-win32.whl", hash = "sha256:5b883e458058f8d6099e4420f0cc2567989032b5f34b271c0827de9f1079a424"},
     {file = "yarl-1.6.3-cp39-cp39-win_amd64.whl", hash = "sha256:4953fb0b4fdb7e08b2f3b3be80a00d28c5c8a2056bb066169de00e6501b986b6"},
     {file = "yarl-1.6.3.tar.gz", hash = "sha256:8a9066529240171b68893d60dca86a763eae2139dd42f42106b03cf4b426bf10"},
+]
+youtube-dl = [
+    {file = "youtube_dl-2021.5.16-py2.py3-none-any.whl", hash = "sha256:deb489a17e541ec7ac35581375ae94161eb22a7ec3373b1216181a4360c187ab"},
+    {file = "youtube_dl-2021.5.16.tar.gz", hash = "sha256:4e569cb0477428fd96ee6f7e7a6640b7c9416be626ed708ac4b8ada6c5a6ffbe"},
 ]

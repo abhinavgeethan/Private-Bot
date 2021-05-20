@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.utils import get
 import requests
 import json
+from utils import send_embed
 
 token = os.environ['TOKEN']
 
@@ -46,6 +47,22 @@ def get_category_by_name(guild, category_name):
     return category
 
 
+#edit before deployment
+def unload_cogs():
+  #for filename in os.listdir('./extensions'):
+  #  if filename.endswith('.py'):
+  client.unload_extension(f'extensions.tester')
+  client.unload_extension(f'extensions.tmdb_cog')
+
+
+#edit before deployment
+def load_cogs():
+  #for filename in os.listdir('./extensions'):
+  #if filename.endswith('.py'):
+  client.load_extension('extensions.tester')
+  client.load_extension('extensions.tmdb_cog')
+
+
 async def create_text_channel(guild, channel_name, category_name):
     category = get_category_by_name(guild, category_name)
     channel = await guild.create_text_channel(channel_name, category=category)
@@ -69,17 +86,7 @@ async def send_on_pvt_channel_creation(channel):
     return message
 
 
-async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None):
-  embed=discord.Embed(title=title,description=description,colour=colour)
-  embed.set_footer(text='This is sent by a bot under development by abhinavgeethan#1933. Excuse any bugs.')
-  if image_url != None:
-    embed.set_image(url=image_url)
-  if thumbnail_url != None:
-    embed.set_thumbnail(url=thumbnail_url)
-  for field in fields:
-    embed.add_field(name=field.name, value=field.value, inline=field.inline)
-  message=await channel.send(embed=embed)
-  return message
+
 
 
 @client.event
@@ -90,6 +97,7 @@ async def on_ready():
 @client.event
 async def on_raw_reaction_add(payload):
   if payload.member.bot==0:
+    #lock pvt room
     if payload.emoji.name=='\U0001F512':
       channel= client.get_channel(payload.channel_id)
       if '-channel' in channel.name:
@@ -104,6 +112,32 @@ async def on_raw_reaction_add(payload):
         permsEveryone = vChannel.overwrites_for(client.get_guild(payload.guild_id).default_role)
         permsEveryone.connect=False
         await vChannel.set_permissions(client.get_guild(payload.guild_id).default_role, overwrite=permsEveryone)
+    #vote to kick in pvt room
+    if payload.emoji.name=='\U00002705':
+      channel= client.get_channel(payload.channel_id)
+      if '-channel' in channel.name:
+        for role in payload.member.roles:
+          if 'channel member' in role.name:
+            vChannel=get_channel_by_name(client.get_guild(payload.guild_id),channel_name=str(role.name)[0:-15]+'\'s Channel')
+            role=role
+            break
+        msg = await channel.fetch_message(payload.message_id)
+        reaction = get(msg.reactions, emoji='\U00002705')
+        if reaction and reaction.count > (round(len(payload.member.voice.channel.members)/2)):
+          print(reaction.count)
+          embed=msg.embeds[0]
+          superset=client.get_all_members()
+          target=str(embed.description[0:-59])
+          for person in superset:
+            if person.name==target:
+              target=person
+              break
+          await target.move_to(None)
+          print("Target Disconnected.")
+          await target.remove_roles(role)
+          print("Target's Role Removed.")
+          await msg.delete()
+          await channel.send(f"{target.name} has been kicked.")
 
 
 @client.event
@@ -128,16 +162,58 @@ async def on_raw_reaction_remove(payload):
 
 
 #inspire command
-@client.command()
+@client.command(help='Returns an inspirational quote from the interwebs.')
 async def inspire(ctx):
   quote=get_quote()
   await ctx.send(quote)
 
 
 #hello command
-@client.command()
+@client.command(help="Says Hello.")
 async def hello(ctx):
   await ctx.send("Hello There!")
+
+
+#refresh command
+@client.command(help="Reloads all Cogs.")
+async def refresh(ctx):
+  unload_cogs()
+  load_cogs()
+  await ctx.send("All cogs reloaded.")
+
+
+#votekick command
+@client.command(help="Initialises vote to Kick member of Private Voice Channel.")
+async def votekick(ctx, member: discord.Member):
+  #error if person not connected to a channel, handle errors
+  if ctx.author.voice.channel==member.voice.channel:
+    fields=[
+      field(
+        f"To Kick {member.name}:",
+        f"Click on :white_check_mark: to kick {member.name} from the private channel.\n {member.name} will only be kicked if majority votes to."
+        ),
+      field(
+        f"To Keep {member.name}:",
+        "Click on :negative_squared_cross_mark:"
+        )
+      ]
+    msg= await send_embed(ctx.message.channel,"Vote to Kick",f'{member.name} will be kicked from the private channel if majority votes.',discord.Color.red(),fields=fields)
+    await msg.add_reaction('\U00002705')
+    await msg.add_reaction('\U0000274E')
+  else:
+    ctx.send(f"{member.name} doesn't appear to be connected to your private Voice Channel")
+
+
+#pvtinvite to pvt channel command
+@client.command(help="Invites mentioned user to private voice channel.")
+async def pvtinvite(ctx,member: discord.Member):
+  if ctx.message.channel.name.endswith('-channel'):
+    for roles in ctx.author.roles:
+      if roles.name.endswith('channel member'):
+        role=roles
+    await member.add_roles(role)
+    await member.send(f"{ctx.author.name} has invited you to join a private channel: {ctx.message.channel.mention} on the server: {ctx.message.guild.name}.\nYou should also probably join the Voice Channel with the same name. \nCheers!")
+    await ctx.send(f"{member.name} has been invited to join this private channel.")
 
 
 @client.event
@@ -186,8 +262,9 @@ async def on_voice_state_update(member, before, after):
                 await message.add_reaction('\U0001F512')
                 #await reactRole(message,'\U0001F512')
 
-        elif after.channel.category.id == get_category_by_name(before.channel.guild,"Private Channels").id:
-          pvtRole=get(after.channel.guild.roles, name=str(before.channel.name)[0:-10]+" channel member")
+        elif after.channel.category.id == get_category_by_name(after.channel.guild,"Private Channels").id:
+          pvtRole=discord.utils.get(after.channel.guild.roles, name=((after.channel.name)[0:-10]+" channel member"))
+          print(pvtRole)
           await member.add_roles(pvtRole)
 
     #deleteting pvt channels once empty
@@ -205,4 +282,5 @@ async def on_voice_state_update(member, before, after):
                 await pvtRole.delete()
 
 
+load_cogs()
 client.run(token)
