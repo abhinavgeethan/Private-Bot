@@ -2,9 +2,10 @@ import os
 import discord
 import requests
 from discord.ext import commands
-from tmdbv3api import TMDb
-from tmdbv3api import Movie
+from tmdbv3api import TMDb, Movie
+#from tmdbv3api import Movie
 from utils import send_embed
+from main import field
 
 tmdb = TMDb()
 tmdb.api_key = os.environ['tbdbv3_token']
@@ -27,8 +28,9 @@ class tmdb_cog(commands.Cog):
     msg=await ctx.send(f'Awaiting response from TMDB for: {movie}')
     movie=get_movie(movie)
     await msg.delete()
-    print(movie.id)
-    await send_embed(ctx.message.channel,movie.title,'*'+movie.overview+'*',image_url='http://image.tmdb.org/t/p/original/'+movie.poster_path)
+    print(f"Movie discovered: {movie.title}, id = {movie.id}")
+    rating=[field(f"TMDB Rating: {movie.vote_average}","**Poster:**")]  if movie.vote_average != None else None
+    await send_embed(ctx.message.channel,movie.title,"**Synopsis**\n"+'*'+movie.overview+'*',image_url='http://image.tmdb.org/t/p/original/'+movie.poster_path,fields=rating)
     
 
 def setup(client):

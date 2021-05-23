@@ -2,7 +2,7 @@ import os
 import discord
 import requests
 from discord.ext import commands
-import rtsimple as rt
+#import rtsimple as rt
 
 
 rt.API_KEY = os.environ['rt_token']
