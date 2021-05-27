@@ -1,0 +1,86 @@
+{
+    "0": {
+        "name": "Commands",
+        "identifier": "commands",
+        "syntax": "`pb commands`",
+        "description": "Displays Bot Commands and syntax. Alternative to pb help"
+    },
+    "1": {
+        "name": "Hello",
+        "identifier": "hello",
+        "syntax": "`pb hello`",
+        "description": "Takes a second to solve some linear algebra and traverse some optic fibres only to come say Hello to you :)"
+    },
+    "2": {
+        "name": "Help",
+        "identifier": "help",
+        "syntax": "`pb help`",
+        "description": "Displays Discord standard bot help with commands, very similar to this."
+    },
+    "3": {
+        "name": "Inspire",
+        "identifier": "inspire",
+        "syntax": "`pb inspire`",
+        "description": "Gets you an inspirational quote from the Interwebs."
+    },
+    "4": {
+        "name": "Movie",
+        "identifier": "movie",
+        "syntax": "`pb movie <movie name>`",
+        "description": "Gets you details and rating for the movie you've mentioned."
+    },
+    "5": {
+        "name": "Ping",
+        "identifier": "ping",
+        "syntax": "`pb ping`",
+        "description": "Says Pong. It might do some calculus and fetch you my server ping as well."
+    },
+    "6": {
+        "name": "Rick Roll",
+        "identifier": "rickroll",
+        "syntax": "`pb rickroll <@user>`",
+        "description": "Rickrolls the mentioned user anonymously. Or tells you to get a life. Which one is it? Who knows."
+    },
+    "7": {
+        "name": "RPS",
+        "identifier": "rps",
+        "syntax": "`pb rps <choice>`",
+        "description": "Plays Rock Paper Scissors with you. I don't cheat, I promise. To those of you who didn't understand why I said that, learn to code, Im sure a job would help."
+    },
+    "8": {
+        "name": "Joke",
+        "identifier": "joke",
+        "syntax": "`pb joke [category]`",
+        "description": "Delivers a joke from the internet. Dark/Programming/Fun/Spooky go into the category, or nothing, upto you."
+    },
+    "9": {
+        "name": "Chuck Norris Joke",
+        "identifier": "cnjoke",
+        "syntax": "`pb cnjoke`",
+        "description": "Delivers a Chuck Norris joke from the internet, if you're into that. To be honest, I don't find these funny, prove me wrong."
+    },
+    "10": {
+        "name": "Vote Kick",
+        "identifier": "votekick",
+        "syntax": "`pb votekick <@user>`",
+        "description": "Vote Kick's a member from your private channel. Stress on **Vote**."
+    },
+    "11": {
+        "name": "Private Invite",
+        "identifier": "pvtinvite",
+        "syntax": "`pb pvtinvite <@user>`",
+        "description": "Invites the mentioned to your private channel. You can kick them out later, it's chill."
+    },
+    "12": {
+        "name": "Match",
+        "identifier": "match",
+        "syntax": "`pb match <@user>`",
+        "description": "Calculates your compatibility with the mentioned person."
+    },
+    "13": {
+        "name": "Meme",
+        "identifier": "meme",
+        "syntax": "`pb meme [subreddit]`",
+        "description": "Retreives a meme from Reddit."
+    }
+}
