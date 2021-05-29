@@ -45,7 +45,7 @@
         "name": "RPS",
         "identifier": "rps",
         "syntax": "`pb rps <choice>`",
-        "description": "Plays Rock Paper Scissors with you. I don't cheat, I promise. To those of you who didn't understand why I said that, learn to code, Im sure a job would help."
+        "description": "Plays Rock Paper Scissors with you. I don't cheat, I promise. To those of you who didn't understand why I said that, learn to code, I'm sure a job would help."
     },
     "8": {
         "name": "Joke",
@@ -78,9 +78,21 @@
         "description": "Calculates your compatibility with the mentioned person."
     },
     "13": {
-        "name": "Meme",
-        "identifier": "meme",
-        "syntax": "`pb meme [subreddit]`",
+        "name": "Reddit",
+        "identifier": "reddit",
+        "syntax": "`pb reddit [subreddit]`",
         "description": "Retreives a meme from Reddit."
+    },
+    "14": {
+        "name": "Status",
+        "identifier": "status",
+        "syntax": "`pb status`",
+        "description": "Retreives the bot server status from a monitoring service."
+    },
+    "15": {
+        "name": "Support",
+        "identifier": "support",
+        "syntax": "`pb support`",
+        "description": "Use for bot support, to request for a feature or to report a bug."
     }
 }

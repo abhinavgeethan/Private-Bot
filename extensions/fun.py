@@ -9,6 +9,7 @@ from main import botPrefix
 import random
 from utils import send_embed
 import praw
+import prawcore
 
 #-------------------------------------------------------------External API Calls--------------------------------------------------------#
 def get_cnjoke():
@@ -44,14 +45,22 @@ def get_meme(subreddit_name):
   superset=[]
   reddit=praw.Reddit(client_id=os.environ['reddit_client_id'],client_secret=os.environ['reddit_client_secret'],username=os.environ['reddit_username'],password=os.environ['reddit_password'],user_agent='Private Bot')
   subreddit=reddit.subreddit(subreddit_name)
-  if not subreddit.over18:
-    top=subreddit.top(limit=10)
-    for submission in top:
-      superset.append(submission)
-    choice=random.choice(superset)
-    return choice.title,choice.url
-  else:
-    return None,None
+  try:
+    if not subreddit.over18:
+      top=subreddit.hot(limit=10)
+      for submission in top:
+        superset.append(submission)
+      choice=random.choice(superset)
+      return choice.title,choice.url
+    else:
+      return None,None
+  except prawcore.exceptions.NotFound:
+    return -1,-1
+  except prawcore.exceptions.Forbidden:
+    return 0,0
+  except:
+    return 1,1
+  
 #--------------------------------------------------------Cog Class Definition-----------------------------------------------------------#
 class fun(commands.Cog):
   
@@ -62,19 +71,24 @@ class fun(commands.Cog):
   @commands.command(help="Returns a Chuck Norris Joke")
   async def cnjoke(self,ctx):
     print("CN Joke Triggered.")
+    msg=await ctx.send("Ringing `Chuck Norris` now. He's 81, it won't take him long though")
     joke=get_cnjoke()
     await ctx.send(joke)
+    await msg.delete()
 
   #joke command
   @commands.command(help="Returns a Joke. Type dark/programming/fun/spooky if you'd like one of a specific kind.")
   async def joke(self,ctx,*,category=None):
     print("Joke triggered.")
     #print("Category= "+category)
+    msg= await ctx.send("Retreiving jokes from the Interwebs.")
     joke=get_regjoke(category)
     if joke["type"] == "single": # Print the joke
       await ctx.send("`"+joke["joke"]+"`")
+      await msg.delete()
     else:
       await ctx.send("`"+joke["setup"]+"`")
+      await msg.delete()
       print("Waiting for Delivery")
       calctime=(len(joke["setup"])*1/10)
       waittime=2.5 if calctime>2.5 else calctime
@@ -123,8 +137,11 @@ class fun(commands.Cog):
       try:
         #names=['Felix','Sean','Jack']
         prompt=['Link','Cats','Dogs','Cyberpunk','Discord Bots']
+        #if bool(random.getrandbits(1)):
         embed=await send_embed(ctx.channel,title=" ",description=f"You should check this out: [{random.choice(prompt)}](https://youtu.be/dQw4w9WgXcQ?t=43)",send=False,footer='clear')
         await member.send(embed=embed)
+        #else:
+        #  await member.send('|| https://tenor.com/view/rick-roll-rick-astley-never-gonna-give-you-up-gif-13662086 ||')
         await ctx.send(f"`{member.name}` has been rickrolled lol.")
       except:
         await ctx.send(f"`{member.name}` has their DM's closed. You can try sending them this: `https://youtu.be/dQw4w9WgXcQ?t=43`.\n Or... *Get a Life*.")
@@ -144,15 +161,21 @@ class fun(commands.Cog):
       await ctx.send(f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. 💙.\n*{negResponse}*")
 
   
-  @commands.command(help="Gets a meme from the specified subreddit.")
-  async def meme(self,ctx,*,subreddit='memes'):
+  @commands.command(help="Gets a meme from the specified subreddit.",aliases=['meme'])
+  async def reddit(self,ctx,*,subreddit='memes'):
     msg=await ctx.send(f"Awaiting response from `r/{subreddit}`. Reddit can get really slow.")
     title,image_url=get_meme(subreddit)
     await msg.delete()
     if title==None and image_url==None:
       await ctx.send(f"`r/{subreddit}` is flagged NSFW and I cannot display memes from it.")
+    elif title==-1 and image_url==-1:
+      await ctx.send(f"`r/{subreddit}` was not found.")
+    elif title==0 and image_url==0:
+      await ctx.send(f"`r/{subreddit}` is member-only.")
+    elif title==1 and image_url==1:
+      await ctx.send("An unknown error occurred.")
     else:
-      await send_embed(ctx.channel,title,"\u200b",image_url=image_url,author=f"r/{subreddit}",footer='clear')
+      await send_embed(ctx.channel,title,"\u200b",image_url=image_url,author=f"r/{subreddit}",footer=f'Slow/Missing media content is usually caused from Discord\'s end. If it is a persistent issue do report it using {botPrefix} support.')
 
 
 

@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.utils import get
 #import requests
 import json
+from keep_alive import keep_alive
 from utils import send_embed, get_channel_by_name, get_category_by_name, create_text_channel, create_voice_channel, get_quote, initial_catalog, get_catalog_size, data_catalog, update_lock_status, update_visibility_status, check_vis_perms, if_owner
 
 token = os.environ['TOKEN']
@@ -164,12 +165,23 @@ async def on_raw_reaction_add(payload):
             vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
             role=role
             break
+        #voicechannel
         permsMember = vChannel.overwrites_for(role)
         permsMember.connect=True
         await vChannel.set_permissions(role, overwrite=permsMember)
         permsEveryone = vChannel.overwrites_for(guild.default_role)
         permsEveryone.connect=False
         await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+        msg=await channel.fetch_message(payload.message_id)
+        #txtchannel
+        txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        permsMember = txtChannel.overwrites_for(role)
+        permsMember.send_messages=True
+        await txtChannel.set_permissions(role, overwrite=permsMember)
+        permsEveryone = txtChannel.overwrites_for(guild.default_role)
+        permsEveryone.send_messages=False
+        await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+        #updation
         msg=await channel.fetch_message(payload.message_id)
         await update_lock_status(vChannel,msg,guild)
         await msg.remove_reaction(payload.emoji.name,payload.member)
@@ -185,12 +197,22 @@ async def on_raw_reaction_add(payload):
             vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
             role=role
             break
+        #vChannel
         permsMember = vChannel.overwrites_for(role)
         permsMember.connect=None
         await vChannel.set_permissions(role, overwrite=permsMember)
         permsEveryone = vChannel.overwrites_for(guild.default_role)
         permsEveryone.connect=None
         await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+        #txtchannel
+        txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        permsMember = txtChannel.overwrites_for(role)
+        permsMember.send_messages=None
+        await txtChannel.set_permissions(role, overwrite=permsMember)
+        permsEveryone = txtChannel.overwrites_for(guild.default_role)
+        permsEveryone.send_messages=None
+        await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+        #updation
         msg=await channel.fetch_message(payload.message_id)
         await update_lock_status(vChannel,msg,guild)
         await msg.remove_reaction(payload.emoji.name,payload.member)
@@ -214,6 +236,15 @@ async def on_raw_reaction_add(payload):
           permsEveryone = vChannel.overwrites_for(guild.default_role)
           permsEveryone.view_channel=False
           await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+          #txtchannel
+          txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          permsMember = txtChannel.overwrites_for(role)
+          permsMember.view_channel=True
+          await txtChannel.set_permissions(role, overwrite=permsMember)
+          permsEveryone = txtChannel.overwrites_for(guild.default_role)
+          permsEveryone.view_channel=False
+          await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+          #updation
           msg=await channel.fetch_message(payload.message_id)
           await update_visibility_status(vChannel,msg,guild)
           await msg.remove_reaction(payload.emoji.name,payload.member)
@@ -224,6 +255,15 @@ async def on_raw_reaction_add(payload):
           permsEveryone = vChannel.overwrites_for(guild.default_role)
           permsEveryone.view_channel=None
           await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+          #txtchannel
+          txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          permsMember = txtChannel.overwrites_for(role)
+          permsMember.view_channel=True
+          await txtChannel.set_permissions(role, overwrite=permsMember)
+          permsEveryone = txtChannel.overwrites_for(guild.default_role)
+          permsEveryone.view_channel=None
+          await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+          #updation
           msg=await channel.fetch_message(payload.message_id)
           await update_visibility_status(vChannel,msg,guild)
           await msg.remove_reaction(payload.emoji.name,payload.member)
@@ -290,29 +330,39 @@ async def on_raw_reaction_add(payload):
         for role in payload.member.roles:
           #print(role.name)
           if role.name.endswith('channel member'):
-            vChannel=get_channel_by_name(client.get_guild(payload.guild_id),channel_name=str(role.name)[0:-15]+'\'s Channel')
+            guild=client.get_guild(payload.guild_id)
+            vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
             role=role
             #print(role.name)
             break
         #print(role)
         msg = await channel.fetch_message(payload.message_id)
+        #opp_reaction=get(msg.reactions, emoji='\U0000274E')
+        #opp_reactors=await opp_reaction.users().flatten()
+        #if payload.member.name in opp_reactors:
+        #  await msg.remove_reaction(opp_reaction.emoji,payload.member)
         reaction = get(msg.reactions, emoji='\U00002705')
         if reaction and reaction.count > (round(len(payload.member.voice.channel.members)/2)):
           #print(reaction.count)
           embed=msg.embeds[0]
-          superset=client.get_all_members()
-          target=str(embed.description[0:-59])
-          for person in superset:
-            if person.name==target:
-              target=person
-              break
-          await target.move_to(None)
-          #print("Target Disconnected.")
-          #print (role.id)
-          await target.remove_roles(role)
-          #print("Target's Role Removed.")
-          await msg.delete()
-          await channel.send(f"{target.name} has been kicked.")
+          #superset=client.get_all_members()
+          targetName=embed.description[1:-60]
+          #for person in superset:
+          #  if person.name==target:
+          #    target=person
+          #    break
+          print(targetName)
+          target=guild.get_member_named(targetName)
+          if target==payload.member:
+            await channel.send(f"Why kick yourself {payload.member.mention}?")
+          else:
+            await target.move_to(None)
+            #print("Target Disconnected.")
+            #print (role.id)
+            await target.remove_roles(role)
+            #print("Target's Role Removed.")
+            await msg.delete()
+            await channel.send(f"{target.name} has been kicked.")
 
 
 #@client.event
@@ -402,7 +452,7 @@ async def on_voice_state_update(member, before, after):
               await member.move_to(channel)
               message=await send_on_pvt_channel_creation(pvt_text_channel)
               newRole=await pvt_text_channel_guild.create_role(
-                name=f'{member.name} channel member',
+                name=f'{member.name} channel member'.lower(),
                 hoist=False,
                 mentionable=False,
                 reason='Created Pvt Channel'
@@ -425,8 +475,10 @@ async def on_voice_state_update(member, before, after):
           await member.move_to(get_channel_by_name(guild,member.name+'\'s channel'))
 
     elif after.channel.category.id == get_category_by_name(after.channel.guild,"Private Channels").id:
-        pvtRole=discord.utils.get(after.channel.guild.roles, name=((after.channel.name)[0:-10]+" channel member"))
-        #print(pvtRole)
+        roleName=after.channel.name[0:-10]+' channel member'
+        print(roleName)
+        pvtRole=discord.utils.get(after.channel.guild.roles, name=roleName)
+        print(pvtRole)
         await member.add_roles(pvtRole)
 
     #deleteting pvt channels once empty
@@ -464,4 +516,5 @@ async def on_command_error(ctx,error):
 
 
 load_cogs()
+keep_alive()
 client.run(token)
