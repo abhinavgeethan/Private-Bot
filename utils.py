@@ -74,7 +74,7 @@ def initial_catalog():
   description='**Movie Synopsis**\n*'+data[0]['synopsis']+'*'
   image_url=data[0]['image_url']
   link=data[0]['link']
-  fields=["Click the below Link to watch the movie",f"[{data[0]['name']} Link]({link})"]
+  fields=["Click the Link below to watch the movie:",f"[{data[0]['name']} Link]({link})"]
   return title,description,image_url,link,fields
 
 def get_catalog_size():

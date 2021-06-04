@@ -60,39 +60,63 @@
         "description": "Delivers a Chuck Norris joke from the internet, if you're into that. To be honest, I don't find these funny, prove me wrong."
     },
     "10": {
+        "name": "Yo Mama Joke",
+        "identifier": "yomama",
+        "syntax": "`pb yomama`",
+        "description": "Delivers a joke from yo mama, aka you."
+    },
+    "11": {
         "name": "Vote Kick",
         "identifier": "votekick",
         "syntax": "`pb votekick <@user>`",
         "description": "Vote Kick's a member from your private channel. Stress on **Vote**."
     },
-    "11": {
+    "12": {
         "name": "Private Invite",
         "identifier": "pvtinvite",
         "syntax": "`pb pvtinvite <@user>`",
         "description": "Invites the mentioned to your private channel. You can kick them out later, it's chill."
     },
-    "12": {
+    "13": {
         "name": "Match",
         "identifier": "match",
         "syntax": "`pb match <@user>`",
         "description": "Calculates your compatibility with the mentioned person."
     },
-    "13": {
+    "14": {
         "name": "Reddit",
         "identifier": "reddit",
         "syntax": "`pb reddit [subreddit]`",
         "description": "Retreives a meme from Reddit."
     },
-    "14": {
+    "15": {
         "name": "Status",
         "identifier": "status",
         "syntax": "`pb status`",
         "description": "Retreives the bot server status from a monitoring service."
     },
-    "15": {
+    "16": {
         "name": "Support",
         "identifier": "support",
         "syntax": "`pb support`",
         "description": "Use for bot support, to request for a feature or to report a bug."
+    },
+    "17": {
+        "name": "Clear",
+        "identifier": "clear",
+        "syntax": "`pb clear [amount]`",
+        "description": "Clears the specified number of messages. If unspecified clears just the previous message."
+    },
+    "18": {
+        "name": "Define",
+        "identifier": "define",
+        "syntax": "`pb define <word>`",
+        "description": "Retrieves all available definitions for the specified term."
+    },
+    "19": {
+        "name": "Urban",
+        "identifier": "urban",
+        "syntax": "`pb urban [word]`",
+        "description": "Retreives the top defintion from Urban Dictionary for the specified term or something random."
     }
 }

@@ -26,22 +26,30 @@ class field:
     self.value=value
     self.inline=inline
     
+#async def clear_messages(channel,limit):
+#  msgs=[]
+#  async for x in client.logs_from(channel,limit=limit):
+#    msgs.append(x)
+#  await client.delete_messages(msgs)
 
 #edit before deployment
 def unload_cogs():
   #for filename in os.listdir('./extensions'):
   #  if filename.endswith('.py'):
-  client.unload_extension(f'extensions.tester')
-  client.unload_extension(f'extensions.tmdb_cog')
-  client.unload_extension(f'extensions.fun')
-
+  client.unload_extension('extensions.tester')
+  client.unload_extension('extensions.tmdb_cog')
+  client.unload_extension('extensions.fun')
+  client.unload_extension('extensions.general')
+  client.unload_extension('extensions.dicti_cog')
 #edit before deployment
 def load_cogs():
   #for filename in os.listdir('./extensions'):
   #if filename.endswith('.py'):
   client.load_extension('extensions.tester')
   client.load_extension('extensions.tmdb_cog')
-  client.load_extension(f'extensions.fun')
+  client.load_extension('extensions.fun')
+  client.load_extension('extensions.general')
+  client.load_extension('extensions.dicti_cog')
 
 
 async def send_on_pvt_channel_creation(channel):
@@ -147,7 +155,9 @@ async def pvtinvite(ctx,member: discord.Member):
 @client.event
 async def on_ready():
     print('We are logged in as {0.user}'.format(client))
-    await client.get_channel(updateChannel).send("**I am now Online.**")
+    channel=client.get_channel(updateChannel)
+    await channel.purge(limit=2)
+    await channel.send("**I am now Online.**")
 
 #Reaction Listeners
 @client.event
@@ -462,14 +472,14 @@ async def on_voice_state_update(member, before, after):
               await message.add_reaction('\U0001F513')
               await message.add_reaction('\U0001F441')
               if guild.id in specialServers:
-                await pvt_text_channel.send("`Here is AV Club's curated Movie Catalog for the Month:`")
+                await pvt_text_channel.send("`Watch F.R.I.E.N.D.S: The Reunion as a part of AV Club's SNL here:`")
                 title,description,image_url,link,fields=initial_catalog()
                 thumbnail_url='https://instagram.ffjr1-2.fna.fbcdn.net/v/t51.2885-19/s150x150/30590396_163613307799664_9089326030237204480_n.jpg?tp=1&_nc_ht=instagram.ffjr1-2.fna.fbcdn.net&_nc_ohc=GppUZ8OOmQYAX8ArS8i&edm=ABfd0MgBAAAA&ccb=7-4&oh=b9f0d6377eae12d363e92b4ffd4a127c&oe=60B4CDD2&_nc_sid=7bff83'
                 author='AV Club\'s SNL'
-                msg=await send_embed(pvt_text_channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],thumbnail_url=thumbnail_url,author=author,footer='Use the Arrow icons below to navigate through the catalog.')
-                buttons=['\u23ea','\u25c0','\u25b6','\u23e9']
-                for button in buttons:
-                  await msg.add_reaction(button)
+                msg=await send_embed(pvt_text_channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],thumbnail_url=thumbnail_url,author=author,footer='For assistance use pb support or contact a server admin with @Admin.')
+                #buttons=['\u23ea','\u25c0','\u25b6','\u23e9']
+                #for button in buttons:
+                #  await msg.add_reaction(button)
         else:
           #print("Channel Exists, Moved.")
           await member.move_to(get_channel_by_name(guild,member.name+'\'s channel'))

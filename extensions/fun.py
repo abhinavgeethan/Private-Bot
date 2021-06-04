@@ -22,6 +22,11 @@ def get_regjoke(category):
   joke = j.get_joke(category=["Any" if category==None else category])  # Retrieve a random joke
   return joke
   
+def get_yomamajoke():
+  response=requests.get("https://api.yomomma.info/")
+  joke=json.loads(response.text)
+  return joke['joke']
+
 #async def async_get_meme(subreddit_name):
 #  superset=[]
 #  reddit=asyncpraw.Reddit(client_id=os.environ['reddit_client_id'],client_secret=os.environ['reddit_client_secret'],user_agent='Private Bot')
@@ -95,6 +100,14 @@ class fun(commands.Cog):
       print(waittime)
       time.sleep(waittime)
       await ctx.send("`"+joke["delivery"]+"`")
+
+  @commands.command(help="Returns a Yo Mama Joke")
+  async def yomama(self,ctx):
+    print("YoMama Joke Triggered.")
+    msg=await ctx.send("Ringing `Yo Mama` now.")
+    joke=get_yomamajoke()
+    await ctx.send(joke)
+    await msg.delete()
 
   #rps command
   @commands.command(help="Plays Rock, Paper Scissors")
