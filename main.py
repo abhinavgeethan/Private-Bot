@@ -13,7 +13,7 @@ token = os.environ['TOKEN']
 botPrefix = 'pb' #manually edit in Commands.json
 botName='Private Bot'
 templateChannel = 'Template'
-specialServers=[832994908973170769,838532330741039105,844544300053430282,846437321552822332]
+specialServers=[832994908973170769]
 masterGuild=846437321552822332
 updateChannel=846443765925281812
 description='This is a bot currently under development by abhinavgeethan#1933. To know more, report bugs, or suggest features head on over to https://discord.gg/YcBDMmQ4nt.'
@@ -471,6 +471,7 @@ async def on_voice_state_update(member, before, after):
               await message.add_reaction('\U0001F512')
               await message.add_reaction('\U0001F513')
               await message.add_reaction('\U0001F441')
+              await message.pin()
               if guild.id in specialServers:
                 await pvt_text_channel.send("`Watch F.R.I.E.N.D.S: The Reunion as a part of AV Club's SNL here:`")
                 title,description,image_url,link,fields=initial_catalog()
