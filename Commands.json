@@ -51,7 +51,7 @@
         "name": "Joke",
         "identifier": "joke",
         "syntax": "`pb joke [category]`",
-        "description": "Delivers a joke from the internet. Dark/Programming/Fun/Spooky go into the category, or nothing, upto you."
+        "description": "Delivers a joke from the internet. Dark/Programming/Pun/Spooky go into the category, or nothing, upto you."
     },
     "9": {
         "name": "Chuck Norris Joke",
@@ -118,5 +118,17 @@
         "identifier": "urban",
         "syntax": "`pb urban [word]`",
         "description": "Retreives the top defintion from Urban Dictionary for the specified term or something random."
+    },
+    "20": {
+        "name": "Anime",
+        "identifier": "anime",
+        "syntax": "`pb anime <anime>`",
+        "description": "Retreives information about specified Anime."
+    },
+    "21": {
+        "name": "Manga",
+        "identifier": "manga",
+        "syntax": "`pb manga <manga>`",
+        "description": "Retreives information about specified Manga."
     }
 }

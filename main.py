@@ -2,10 +2,10 @@ import os
 import discord
 from discord.ext import commands
 from discord.utils import get
-#import requests
+from datetime import datetime
 import json
 from keep_alive import keep_alive
-from utils import send_embed, get_channel_by_name, get_category_by_name, create_text_channel, create_voice_channel, get_quote, initial_catalog, get_catalog_size, data_catalog, update_lock_status, update_visibility_status, check_vis_perms, if_owner
+from utils import send_embed, get_channel_by_name, get_category_by_name, create_text_channel, create_voice_channel, get_quote, initial_catalog, get_catalog_size, data_catalog, update_lock_status, update_visibility_status, check_vis_perms, if_owner,get_bot_status
 
 token = os.environ['TOKEN']
 
@@ -16,6 +16,7 @@ templateChannel = 'Template'
 specialServers=[832994908973170769]
 masterGuild=846437321552822332
 updateChannel=846443765925281812
+monitorName='private bot monitor'
 description='This is a bot currently under development by abhinavgeethan#1933. To know more, report bugs, or suggest features head on over to https://discord.gg/YcBDMmQ4nt.'
 client = commands.Bot(command_prefix=botPrefix+" ",intents=discord.Intents().all(),case_insensitive=True, description=description, owner_id=710430416045080656)
 
@@ -25,6 +26,9 @@ class field:
     self.name=name
     self.value=value
     self.inline=inline
+  
+  def to_text(self):
+    return f"Name: {self.name}, Value: {self.value}, Inline: {self.inline}"
     
 #async def clear_messages(channel,limit):
 #  msgs=[]
@@ -32,6 +36,8 @@ class field:
 #    msgs.append(x)
 #  await client.delete_messages(msgs)
 
+def is_me(m):
+    return m.author == client.user or m.author.name.lower() == monitorName
 #edit before deployment
 def unload_cogs():
   #for filename in os.listdir('./extensions'):
@@ -41,6 +47,7 @@ def unload_cogs():
   client.unload_extension('extensions.fun')
   client.unload_extension('extensions.general')
   client.unload_extension('extensions.dicti_cog')
+  pass
 #edit before deployment
 def load_cogs():
   #for filename in os.listdir('./extensions'):
@@ -50,6 +57,7 @@ def load_cogs():
   client.load_extension('extensions.fun')
   client.load_extension('extensions.general')
   client.load_extension('extensions.dicti_cog')
+  pass
 
 
 async def send_on_pvt_channel_creation(channel):
@@ -103,7 +111,7 @@ async def hello(ctx):
 
 #----------------------------------------------------Developer Command-------------------------------------------------------#
 #refresh command
-@client.command(help="Reloads all Cogs. Dev-only Command")
+@client.command(help="Reloads all Cogs. Dev-only Command",hidden=True)
 async def refresh(ctx):
   if ctx.author.id==710430416045080656:
     unload_cogs()
@@ -156,8 +164,14 @@ async def pvtinvite(ctx,member: discord.Member):
 async def on_ready():
     print('We are logged in as {0.user}'.format(client))
     channel=client.get_channel(updateChannel)
-    await channel.purge(limit=2)
-    await channel.send("**I am now Online.**")
+    await channel.purge(limit=3,check=is_me)
+    response_time,avg,status=get_bot_status()
+    if status==2:
+      print("UptimeRobot reports the bot to be UP.")
+    else:
+      print("UptimeRobot does not give an accurate report.")
+    await send_embed(channel,"Status",f"**{botName} is now online and operational.**",discord.Color.green(),timestamp=datetime.now(),footer='clear',fields=[field("Discord API",f"{round(client.latency * 1000)} ms",True),field("Round-Trip Response",f"{response_time}"+(" ms" if response_time!='Unavailable' else '')+f"\nAverage: {avg}"+(" ms" if avg!='Unavailable' else ''),True)])
+    await send_embed(channel,"","It can take upto **4** minutes to confirm that the bot is down.",footer='If you encounter an undetected downtime head over to #bug-report.')
 
 #Reaction Listeners
 @client.event
@@ -521,8 +535,14 @@ async def on_command_error(ctx,error):
       if comm_list[i]['identifier']==comm:
         syntax=comm_list[i]['syntax']
         break
-    await ctx.send(f"One or more required inputs weren't provided.\nThe correct syntax is: {syntax}.")
+    #await ctx.send(f"One or more required inputs weren't provided.\nThe correct syntax is: {syntax}.")
+    await send_embed(ctx.channel,"",'One or more required inputs weren\'t provided.',discord.Colour.red(),fields=[field('The correct syntax is:',f"{syntax}")],footer='clear')
+  elif isinstance(error,commands.DisabledCommand):
+    await send_embed(ctx.channel,'',f"`{botPrefix} {ctx.command.name}` is temporarily disabled.",discord.Colour.red(),footer='clear')
+  elif isinstance(error,commands.CommandNotFound):
+    pass
   else:
+    await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
     raise error
 
 

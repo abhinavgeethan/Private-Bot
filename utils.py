@@ -1,9 +1,13 @@
 import discord
 import requests
 import json
+import os
 
-async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,footer='default'):
-  embed=discord.Embed(title=title,description=description,colour=colour)
+async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,timestamp=None,footer='default'):
+  if timestamp==None:
+    embed=discord.Embed(title=title,description=description,colour=colour)
+  else:
+    embed=discord.Embed(title=title,description=description,colour=colour,timestamp=timestamp)
   if footer=='default':
     embed.set_footer(text='This is sent by a bot under development by abhinavgeethan#1933. Excuse any bugs.')
   elif footer=='clear':
@@ -161,3 +165,20 @@ async def if_owner(guild,member):
     return False
   else:
     return True
+
+def get_bot_status():
+  url = "https://api.uptimerobot.com/v2/getMonitors"          
+  payload = f"api_key={os.environ['uptime_api_key']}&format=json&noJsonCallback=1&monitors=788254326&response_times=1&response_times_limit=1&limit=1"
+  headers = {
+      'content-type': "application/x-www-form-urlencoded",
+      'cache-control': "no-cache"
+      }            
+  response = requests.request("POST", url, data=payload, headers=headers)
+  try:
+    response=json.loads(response.text)
+    response_time=response['monitors'][0]['response_times'][0]['value']
+    avg_response_time=round(float(response['monitors'][0]['average_response_time']))
+    status=response['monitors'][0]['status']
+    return response_time,avg_response_time,status
+  except:
+    return "Unavailable","Unavailable",None

@@ -2,7 +2,7 @@ import os
 import discord
 import json
 import requests
-import time
+import asyncio
 from discord.ext import commands
 from jokeapi import Jokes
 from main import botPrefix
@@ -82,9 +82,23 @@ class fun(commands.Cog):
     await msg.delete()
 
   #joke command
-  @commands.command(help="Returns a Joke. Type dark/programming/fun/spooky if you'd like one of a specific kind.")
+  @commands.command(help="Returns a Joke. Type dark/programming/pun/spooky if you'd like one of a specific kind.",enabled=True)
   async def joke(self,ctx,*,category=None):
     print("Joke triggered.")
+    choices=['any','misc','programming','dark','pun','spooky','christmas']
+    if category==None:
+      pass
+    elif category.lower() in choices:
+      pass
+    else:
+      await send_embed(
+        ctx.channel,
+        '',
+        f"`{category}` is not a valid category.\nTry `Any`, `Misc`, `Programming`, `Dark`, `Pun`, `Spooky` or `Christmas`.",
+        discord.Colour.red(),
+        footer='clear'
+        )
+      return
     #print("Category= "+category)
     msg= await ctx.send("Retreiving jokes from the Interwebs.")
     joke=get_regjoke(category)
@@ -98,8 +112,9 @@ class fun(commands.Cog):
       calctime=(len(joke["setup"])*1/10)
       waittime=2.5 if calctime>2.5 else calctime
       print(waittime)
-      time.sleep(waittime)
+      await asyncio.sleep(waittime)
       await ctx.send("`"+joke["delivery"]+"`")
+
 
   @commands.command(help="Returns a Yo Mama Joke")
   async def yomama(self,ctx):
