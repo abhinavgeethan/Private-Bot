@@ -544,7 +544,7 @@ async def on_command_error(ctx,error):
     await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
     raise error
 
-
+print("Hi")
 load_cogs()
 keep_alive()
 client.run(token)
