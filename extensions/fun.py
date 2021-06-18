@@ -203,9 +203,19 @@ class fun(commands.Cog):
     elif title==1 and image_url==1:
       await ctx.send("An unknown error occurred.")
     else:
-      await send_embed(ctx.channel,title,"\u200b",image_url=image_url,author=f"r/{subreddit}",footer=f'Slow/Missing media content is usually caused from Discord\'s end. If it is a persistent issue do report it using {botPrefix} support.')
+      await send_embed(ctx.channel,"","**"+title+"**",image_url=image_url,author=f"r/{subreddit}",footer=f'Slow/Missing media content is usually caused from Discord\'s end. If it is a persistent issue do report it using {botPrefix} support.')
 
 
+  @commands.command(help="Insults the mentioned person.")
+  async def insult(self,ctx,target: discord.Member=None):
+    if not target:
+      target=ctx.author
+    try:
+      response=requests.get('https://evilinsult.com/generate_insult.php')
+      insult=response.text.replace('&quot;','\"').replace("&gt;","")
+      await ctx.send(f"{target.mention}, "+(insult[0].lower() if not insult.startswith("I ") else insult[0])+insult[1:])
+    except:
+      await ctx.send("Get a life.")
 
 def setup(client):
   client.add_cog(fun(client))

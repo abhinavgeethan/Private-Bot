@@ -5,7 +5,7 @@ from discord.utils import get
 from datetime import datetime
 import json
 from keep_alive import keep_alive
-from utils import send_embed, get_channel_by_name, get_category_by_name, create_text_channel, create_voice_channel, get_quote, initial_catalog, get_catalog_size, data_catalog, update_lock_status, update_visibility_status, check_vis_perms, if_owner,get_bot_status
+from utils import *
 
 token = os.environ['TOKEN']
 

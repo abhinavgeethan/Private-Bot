@@ -130,5 +130,11 @@
         "identifier": "manga",
         "syntax": "`pb manga <manga>`",
         "description": "Retreives information about specified Manga."
+    },
+    "22": {
+        "name": "Insult",
+        "identifier": "insult",
+        "syntax": "`pb insult [insult]`",
+        "description": "Insults the mentioned person."
     }
 }
