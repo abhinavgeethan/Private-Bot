@@ -65,7 +65,6 @@ async def send_on_pvt_channel_creation(channel):
     title="Welcome to your Private Text Channel"
     description="Once your friends have joined the channel you may be able to lock it and chat without interruptions.\n\u200b"
     colour=discord.Colour.green()
-    #For Links: [Movie Link](https://www.youtube.com/)
     fields = [field(
         "To Lock the Channel click on :lock:",
         "**To Unlock the Channel click on :unlock:**\n**To Toggle the Channel visibility click on :eye:**"
