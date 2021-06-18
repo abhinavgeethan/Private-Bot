@@ -1,5 +1,6 @@
 #Py Cache
 __pycache__/
+extensions/__pycache__
 #Packager Files
 *.lock
 *.toml
