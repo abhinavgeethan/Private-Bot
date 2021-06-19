@@ -4,3 +4,8 @@ extensions/__pycache__
 #Packager Files
 *.lock
 *.toml
+#Venv
+pbvenv/
+.vscode/
+#Secrets
+.env
