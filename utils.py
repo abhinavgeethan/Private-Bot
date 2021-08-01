@@ -170,7 +170,10 @@ async def if_owner(guild,member):
 
 def get_bot_status():
   url = "https://api.uptimerobot.com/v2/getMonitors"          
-  payload = f"api_key={os.environ['uptime_api_key']}&format=json&noJsonCallback=1&monitors=788254326&response_times=1&response_times_limit=1&limit=1"
+  try:
+    payload = f"api_key={os.environ['uptime_api_key']}&format=json&noJsonCallback=1&monitors=788254326&response_times=1&response_times_limit=1&limit=1"
+  except:
+    return "Unavailable","Unavailable",None
   headers = {
       'content-type': "application/x-www-form-urlencoded",
       'cache-control': "no-cache"

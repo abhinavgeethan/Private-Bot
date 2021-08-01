@@ -16,6 +16,7 @@ templateChannel = 'Template'
 specialServers=[832994908973170769]
 masterGuild=846437321552822332
 updateChannel=846443765925281812
+reaction_emojis=['\U0001F512','\U0001F513','\U0001F441','\u23ea','\u25c0','\u25b6','\u23e9','\U00002705',"\U0001f7e5","\U0001f7e6","\U0001f7e7","\U0001f7e8","\U0001f7e9","\U0001f7ea","\U0001f7eb","\U00002b1b","\U00002b1c"]
 monitorName='private bot monitor'
 description='This is a bot currently under development by abhinavgeethan#1933. To know more, report bugs, or suggest features head on over to https://discord.gg/YcBDMmQ4nt.'
 client = commands.Bot(command_prefix=botPrefix+" ",intents=discord.Intents().all(),case_insensitive=True, description=description, owner_id=710430416045080656)
@@ -47,6 +48,9 @@ def unload_cogs():
   client.unload_extension('extensions.fun')
   client.unload_extension('extensions.general')
   client.unload_extension('extensions.dicti_cog')
+  # client.unload_extension('extensions.tourney')
+  client.unload_extension('extensions.rxnrole')
+  client.unload_extension('extensions.games')
   pass
 #edit before deployment
 def load_cogs():
@@ -57,6 +61,9 @@ def load_cogs():
   client.load_extension('extensions.fun')
   client.load_extension('extensions.general')
   client.load_extension('extensions.dicti_cog')
+  # client.load_extension('extensions.tourney')
+  client.load_extension('extensions.rxnrole')
+  client.load_extension('extensions.games')
   pass
 
 
@@ -65,7 +72,8 @@ async def send_on_pvt_channel_creation(channel):
     title="Welcome to your Private Text Channel"
     description="Once your friends have joined the channel you may be able to lock it and chat without interruptions.\n\u200b"
     colour=discord.Colour.green()
-    fields = [field(
+    fields = [
+      field(
         "To Lock the Channel click on :lock:",
         "**To Unlock the Channel click on :unlock:**\n**To Toggle the Channel visibility click on :eye:**"
         ),
@@ -92,7 +100,7 @@ async def send_on_pvt_channel_creation(channel):
         "\u200b"
       )
       ]
-    message=await send_embed(channel,title,description,colour,fields=fields)
+    message=await send_embed(channel,title,description,colour,fields=fields,footer=botPrefix.upper()+"PVT"+str(channel.id)[-5:])
     return message
 
 #-------------------------------------------------------General Commands-----------------------------------------------------#
@@ -136,7 +144,7 @@ async def votekick(ctx, member: discord.Member):
         "Click on :negative_squared_cross_mark:"
         )
       ]
-    msg= await send_embed(ctx.message.channel,"Vote to Kick",f'`{member.name}` will be kicked from the private channel if majority votes.',discord.Color.red(),fields=fields)
+    msg= await send_embed(ctx.message.channel,"Vote to Kick",f'`{member.name}` will be kicked from the private channel if majority votes.',discord.Color.red(),fields=fields,footer=botPrefix.upper()+"VKE"+str(ctx.message.channel.id)[-5:])
     await msg.add_reaction('\U00002705')
     await msg.add_reaction('\U0000274E')
   else:
@@ -175,13 +183,49 @@ async def on_ready():
 #Reaction Listeners
 @client.event
 async def on_raw_reaction_add(payload):
-  if payload.member.bot==0:
-    
-    
+  if payload.member.bot!=0:
+    return
+  if not payload.emoji.name in reaction_emojis:
+    return
+  channel=payload.member.guild.get_channel(payload.channel_id)
+  message=await channel.fetch_message(payload.message_id)
+  embed=message.embeds[0]
+  if not embed.footer:
+    return
+  id=embed.footer.text[0:10]
+  if not id.lower().startswith(botPrefix.lower()):
+    return
+  if not id[-5:]==str(payload.channel_id)[-5:]:
+    print("Rxn: Channel Error",id[-5:],str(payload.channel_id)[-5:])
+    return
+  if id[2:].startswith("RR"):
+    #ReactionRole
+    for em_pxy in embed.fields:
+      if em_pxy.name.startswith(payload.emoji.name):
+        role_name=em_pxy.name[len(payload.emoji.name)+3:]
+        break
+    if role_name:
+      for r in payload.member.guild.roles:
+        if r.name==role_name:
+          role=r
+          break
+      if role:
+        try:
+          await payload.member.add_roles(role,reason=f"Reacted on {botName}'s Reaction Role post with id: {id}")
+        except:
+          print("RR: Role Assign Failed due to:")
+          await channel.send(f"{payload.member.mention}, I could not give you the {role.mention} role.")
+          raise
+      else:
+        print(f"RR: Couldnt find role with rolename: {role_name} on guild: {payload.guild.name}")
+    else:
+      print("RR: Couldnt find rolename in RR embed.")
+      return
+  elif id[2:].startswith("PVT"):
     #lock pvt room
     if payload.emoji.name=='\U0001F512':
-      channel= client.get_channel(payload.channel_id)
-      guild=client.get_guild(payload.guild_id)
+      # channel= client.get_channel(payload.channel_id)
+      guild=payload.member.guild
       if channel.name.endswith('-channel'):
         for role in payload.member.roles:
           if role.name.endswith('channel member'):
@@ -197,7 +241,8 @@ async def on_raw_reaction_add(payload):
         await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
         msg=await channel.fetch_message(payload.message_id)
         #txtchannel
-        txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        # txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        txtChannel=channel
         permsMember = txtChannel.overwrites_for(role)
         permsMember.send_messages=True
         await txtChannel.set_permissions(role, overwrite=permsMember)
@@ -205,15 +250,15 @@ async def on_raw_reaction_add(payload):
         permsEveryone.send_messages=False
         await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
         #updation
-        msg=await channel.fetch_message(payload.message_id)
-        await update_lock_status(vChannel,msg,guild)
-        await msg.remove_reaction(payload.emoji.name,payload.member)
+        # msg=await channel.fetch_message(payload.message_id)
+        await update_lock_status(vChannel,message,guild)
+        await message.remove_reaction(payload.emoji.name,payload.member)
         
 
     #Unlock Pvt Room
     if payload.emoji.name=='\U0001F513':
-      guild=client.get_guild(payload.guild_id)
-      channel= client.get_channel(payload.channel_id)
+      guild=payload.member.guild
+      # channel= client.get_channel(payload.channel_id)
       if '-channel' in channel.name:
         for role in payload.member.roles:
           if 'channel member' in role.name:
@@ -228,7 +273,8 @@ async def on_raw_reaction_add(payload):
         permsEveryone.connect=None
         await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
         #txtchannel
-        txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        # txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+        txtChannel=channel
         permsMember = txtChannel.overwrites_for(role)
         permsMember.send_messages=None
         await txtChannel.set_permissions(role, overwrite=permsMember)
@@ -236,15 +282,15 @@ async def on_raw_reaction_add(payload):
         permsEveryone.send_messages=None
         await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
         #updation
-        msg=await channel.fetch_message(payload.message_id)
-        await update_lock_status(vChannel,msg,guild)
-        await msg.remove_reaction(payload.emoji.name,payload.member)
+        # msg=await channel.fetch_message(payload.message_id)
+        await update_lock_status(vChannel,message,guild)
+        await message.remove_reaction(payload.emoji.name,payload.member)
 
 
     #Toggle Visibility
     if payload.emoji.name=='\U0001F441':
-      guild=client.get_guild(payload.guild_id)
-      channel= client.get_channel(payload.channel_id)
+      guild=payload.member.guild
+      # channel= client.get_channel(payload.channel_id)
       if '-channel' in channel.name:
         for role in payload.member.roles:
           if 'channel member' in role.name:
@@ -260,7 +306,8 @@ async def on_raw_reaction_add(payload):
           permsEveryone.view_channel=False
           await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
           #txtchannel
-          txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          # txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          txtChannel=channel
           permsMember = txtChannel.overwrites_for(role)
           permsMember.view_channel=True
           await txtChannel.set_permissions(role, overwrite=permsMember)
@@ -268,9 +315,9 @@ async def on_raw_reaction_add(payload):
           permsEveryone.view_channel=False
           await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
           #updation
-          msg=await channel.fetch_message(payload.message_id)
-          await update_visibility_status(vChannel,msg,guild)
-          await msg.remove_reaction(payload.emoji.name,payload.member)
+          # msg=await channel.fetch_message(payload.message_id)
+          await update_visibility_status(vChannel,message,guild)
+          await message.remove_reaction(payload.emoji.name,payload.member)
         else:
           permsMember = vChannel.overwrites_for(role)
           permsMember.view_channel=True
@@ -279,7 +326,8 @@ async def on_raw_reaction_add(payload):
           permsEveryone.view_channel=None
           await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
           #txtchannel
-          txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          # txtChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+"-channel")
+          txtChannel=channel
           permsMember = txtChannel.overwrites_for(role)
           permsMember.view_channel=True
           await txtChannel.set_permissions(role, overwrite=permsMember)
@@ -287,21 +335,20 @@ async def on_raw_reaction_add(payload):
           permsEveryone.view_channel=None
           await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
           #updation
-          msg=await channel.fetch_message(payload.message_id)
-          await update_visibility_status(vChannel,msg,guild)
-          await msg.remove_reaction(payload.emoji.name,payload.member)
-
-
+          # msg=await channel.fetch_message(payload.message_id)
+          await update_visibility_status(vChannel,message,guild)
+          await message.remove_reaction(payload.emoji.name,payload.member)
+  elif id[2:].startswith("AVC"):
     #Carousel control
     buttons=['\u23ea','\u25c0','\u25b6','\u23e9']
     if payload.emoji.name in buttons:
       #is Carousel
       if payload.guild_id in specialServers:
         #is AV or Test Server
-        channel = client.get_channel(payload.channel_id)
-        msg = await channel.fetch_message(payload.message_id)
+        # channel = client.get_channel(payload.channel_id)
+        # msg = await channel.fetch_message(payload.message_id)
         #print(msg)
-        embed=msg.embeds[0]
+        # embed=msg.embeds[0]
         if embed != None:
           if embed.description.startswith('**Movie Synopsis**'):
             #is a Movie catalog
@@ -335,39 +382,38 @@ async def on_raw_reaction_add(payload):
             #print(index)
             if index!=prev_index:
               title,description,image_url,link,fields,author,thumbnail_url=data_catalog(index)
-              embed=await send_embed(channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],send=False,author=author,thumbnail_url=thumbnail_url,footer='Use the Arrow icons below to navigate through the catalog.')
-              await msg.edit(embed=embed)
+              embed=await send_embed(channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],send=False,author=author,thumbnail_url=thumbnail_url,footer=botPrefix.upper()+"AVC"+str(channel.id)[-5:]+'Use the Arrow icons below to navigate through the catalog.')
+              await message.edit(embed=embed)
               #print("Display Updated")
-              await msg.remove_reaction(payload.emoji.name,payload.member)
+              await message.remove_reaction(payload.emoji.name,payload.member)
             else:
               print("Nothing to Update")
-              await msg.remove_reaction(payload.emoji.name,payload.member)
-      
-
+              await message.remove_reaction(payload.emoji.name,payload.member)
+  elif id[2:].startswith("VKE"):
     #vote to kick in pvt room
     if payload.emoji.name=='\U00002705':
-      channel= client.get_channel(payload.channel_id)
+      # channel= client.get_channel(payload.channel_id)
       if channel.name.endswith('-channel'):
         #print(channel.name)
         #print(payload.member.roles)
         for role in payload.member.roles:
           #print(role.name)
           if role.name.endswith('channel member'):
-            guild=client.get_guild(payload.guild_id)
+            guild=payload.member.guild
             vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
             role=role
             #print(role.name)
             break
         #print(role)
-        msg = await channel.fetch_message(payload.message_id)
+        # msg = await channel.fetch_message(payload.message_id)
         #opp_reaction=get(msg.reactions, emoji='\U0000274E')
         #opp_reactors=await opp_reaction.users().flatten()
         #if payload.member.name in opp_reactors:
         #  await msg.remove_reaction(opp_reaction.emoji,payload.member)
-        reaction = get(msg.reactions, emoji='\U00002705')
+        reaction = get(message.reactions, emoji='\U00002705')
         if reaction and reaction.count > (round(len(payload.member.voice.channel.members)/2)):
           #print(reaction.count)
-          embed=msg.embeds[0]
+          # embed=msg.embeds[0]
           #superset=client.get_all_members()
           targetName=embed.description[1:-60]
           #for person in superset:
@@ -384,7 +430,7 @@ async def on_raw_reaction_add(payload):
             #print (role.id)
             await target.remove_roles(role)
             #print("Target's Role Removed.")
-            await msg.delete()
+            await message.delete()
             await channel.send(f"{target.name} has been kicked.")
 
 
@@ -490,7 +536,7 @@ async def on_voice_state_update(member, before, after):
                 title,description,image_url,link,fields=initial_catalog()
                 thumbnail_url='https://instagram.ffjr1-2.fna.fbcdn.net/v/t51.2885-19/s150x150/30590396_163613307799664_9089326030237204480_n.jpg?tp=1&_nc_ht=instagram.ffjr1-2.fna.fbcdn.net&_nc_ohc=GppUZ8OOmQYAX8ArS8i&edm=ABfd0MgBAAAA&ccb=7-4&oh=b9f0d6377eae12d363e92b4ffd4a127c&oe=60B4CDD2&_nc_sid=7bff83'
                 author='AV Club\'s SNL'
-                msg=await send_embed(pvt_text_channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],thumbnail_url=thumbnail_url,author=author,footer='For assistance use pb support or contact a server admin with @Admin.')
+                msg=await send_embed(pvt_text_channel,title,description,image_url=image_url,fields=[field(fields[0],fields[1])],thumbnail_url=thumbnail_url,author=author,footer=botPrefix.upper()+"AVC"+str(pvt_text_channel.id)[-5:]+' For assistance use pb support or contact a server admin with @Admin.')
                 #buttons=['\u23ea','\u25c0','\u25b6','\u23e9']
                 #for button in buttons:
                 #  await msg.add_reaction(button)
@@ -538,13 +584,18 @@ async def on_command_error(ctx,error):
     await send_embed(ctx.channel,"",'One or more required inputs weren\'t provided.',discord.Colour.red(),fields=[field('The correct syntax is:',f"{syntax}")],footer='clear')
   elif isinstance(error,commands.DisabledCommand):
     await send_embed(ctx.channel,'',f"`{botPrefix} {ctx.command.name}` is temporarily disabled.",discord.Colour.red(),footer='clear')
+  elif isinstance(error,commands.MemberNotFound):
+    await send_embed(ctx.channel,'',f"User: `{error.argument}` was not found in this server.",discord.Colour.red(),footer='clear')
+  elif isinstance(error,commands.RoleNotFound):
+    await send_embed(ctx.channel,'',f"Role: `{error.argument}` was not found in this server.",discord.Colour.red(),footer='clear')
+  elif isinstance(error,commands.MissingRole):
+    await send_embed(ctx.channel,'',f"Role: `{error.missing_role}` is required to invoke that command.",discord.Colour.red(),footer='clear')
   elif isinstance(error,commands.CommandNotFound):
     pass
   else:
     await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
     raise error
 
-print("Hi")
 load_cogs()
 keep_alive()
 client.run(token)
