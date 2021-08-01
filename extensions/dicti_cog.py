@@ -1,6 +1,6 @@
 import discord
 import json
-import requests
+from aiohttp import ClientSession
 from discord.ext import commands
 from udpy import AsyncUrbanClient
 from utils import send_embed
@@ -23,8 +23,9 @@ async def get_udef(channel,term):
 
 async def get_def(channel,term):
   url='https://api.dictionaryapi.dev/api/v2/entries/en_US/'
-  response=requests.get(url+term)
-  response=json.loads(response.text)
+  async with ClientSession() as session:
+    response=await session.get(url+term)
+    response=await response.json()
   try:
     if response['title']=="No Definitions Found":
       return -1
@@ -40,9 +41,9 @@ async def get_def(channel,term):
         for item in response[i]['meanings']:
           for j in range(len(item['definitions'])):
             try:
-              fields.append(field("Part of Speech: "+item['partOfSpeech'] if item['partOfSpeech']!=None else "Noun",item['definitions'][j]['definition']+"\n\nExample: *"+item['definitions'][j]['example']+"*"))
+              fields.append(field("Part of Speech: "+item['partOfSpeech'].title() if item['partOfSpeech']!=None else "Noun",item['definitions'][j]['definition']+"\n\nExample: *"+item['definitions'][j]['example']+"*"))
             except KeyError:
-              fields.append(field("Part of Speech: "+item['partOfSpeech'] if item['partOfSpeech']!=None else "Noun",item['definitions'][j]['definition']))
+              fields.append(field("Part of Speech: "+item['partOfSpeech'].title() if item['partOfSpeech']!=None else "Noun",item['definitions'][j]['definition']))
         embeds.append(await send_embed(
           channel,
           "Defining: "+response[i]['word'].title(),

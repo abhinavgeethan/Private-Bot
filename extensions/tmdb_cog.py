@@ -1,6 +1,6 @@
 import os
 import discord
-import requests
+from aiohttp import ClientSession
 from discord.ext import commands
 from tmdbv3api import TMDb, Movie
 from utils import send_embed
@@ -66,6 +66,8 @@ async def parse_anime_data(response):
   #Field 7
   fields.append(field("Content Origin",root['source'].title()+"\n",True))
 
+  poster_colour=root['coverImage']['color'][1:]
+  
   try:  
     if root['trailer']['site']=='youtube':
       t_url='https://www.youtube.com/watch?v='+root['trailer']['id']
@@ -82,7 +84,7 @@ async def parse_anime_data(response):
     description=description[:-1]
   description+="*\n"+(f"Link to Trailer:[{root['trailer']['site'].title()}]({t_url})" if t_url != None else "")
   
-  embed=await send_embed(None,title,description,image_url=image_url,fields=fields,send=False,footer=f"To report any bugs or to suggest a feature use {botPrefix} support")
+  embed=await send_embed(None,title,description,colour=discord.Color(int(poster_colour,16)),image_url=image_url,fields=fields,send=False,footer=f"To report any bugs or to suggest a feature use {botPrefix} support")
   return embed
 
 async def get_anime(term,type):
@@ -151,8 +153,9 @@ async def get_anime(term,type):
     'type':f"{type}"
   }
   url = 'https://graphql.anilist.co'
-  response=requests.post(url,json={'query':query,'variables':variables})
-  response=json.loads(response.text)
+  async with ClientSession() as session:
+    response=await session.post(url,json={'query':query,'variables':variables})
+    response=await response.json()
   return await parse_anime_data(response)
 
 

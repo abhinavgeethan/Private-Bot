@@ -96,45 +96,63 @@
         "description": "Retreives the bot server status from a monitoring service."
     },
     "16": {
+        "name": "Information",
+        "identifier": "info",
+        "syntax": "`pb info`",
+        "description": "Displays general information about the Bot."
+    },
+    "17": {
         "name": "Support",
         "identifier": "support",
         "syntax": "`pb support`",
         "description": "Use for bot support, to request for a feature or to report a bug."
     },
-    "17": {
+    "18": {
         "name": "Clear",
         "identifier": "clear",
         "syntax": "`pb clear [amount]`",
         "description": "Clears the specified number of messages. If unspecified clears just the previous message."
     },
-    "18": {
+    "19": {
         "name": "Define",
         "identifier": "define",
         "syntax": "`pb define <word>`",
         "description": "Retrieves all available definitions for the specified term."
     },
-    "19": {
+    "20": {
         "name": "Urban",
         "identifier": "urban",
         "syntax": "`pb urban [word]`",
         "description": "Retreives the top defintion from Urban Dictionary for the specified term or something random."
     },
-    "20": {
+    "21": {
         "name": "Anime",
         "identifier": "anime",
         "syntax": "`pb anime <anime>`",
         "description": "Retreives information about specified Anime."
     },
-    "21": {
+    "22": {
         "name": "Manga",
         "identifier": "manga",
         "syntax": "`pb manga <manga>`",
         "description": "Retreives information about specified Manga."
     },
-    "22": {
+    "23": {
         "name": "Insult",
         "identifier": "insult",
         "syntax": "`pb insult [insult]`",
         "description": "Insults the mentioned person."
+    },
+    "24": {
+        "name": "Tic-Tac-Toe",
+        "identifier": "tictactoe",
+        "syntax": "`pb tictactoe [opponent]`",
+        "description": "Starts a game of tic-tac-toe against an unbeatable AI or the person you've mentioned."
+    },
+    "25": {
+        "name": "Reaction Roles",
+        "identifier": "rrsetup",
+        "syntax": "`pb rrsetup`",
+        "description": "Initiates set up for a Reaction Role post."
     }
 }

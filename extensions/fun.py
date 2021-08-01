@@ -1,10 +1,11 @@
 import os
 import discord
-import json
+# import json
+from aiohttp import ClientSession
 import requests
 import asyncio
 from discord.ext import commands
-from jokeapi import Jokes
+# from jokeapi import Jokes
 from main import botPrefix
 import random
 from utils import send_embed
@@ -12,19 +13,22 @@ import praw
 import prawcore
 
 #-------------------------------------------------------------External API Calls--------------------------------------------------------#
-def get_cnjoke():
-  response=requests.get("https://api.chucknorris.io/jokes/random")
-  joke=json.loads(response.text)
+async def get_cnjoke():
+  async with ClientSession() as session:
+    response=await session.get("https://api.chucknorris.io/jokes/random")
+    joke=await response.json()
   return joke['value']
 
-def get_regjoke(category):
-  j=Jokes()
-  joke = j.get_joke(category=["Any" if category==None else category])  # Retrieve a random joke
-  return joke
+async def get_regjoke(category):
+  async with ClientSession() as session:
+    joke = await session.get("https://v2.jokeapi.dev/joke/"+("Any" if category==None else category.title()))  # Retrieve a random joke
+    joke=await joke.json()
+    return joke 
   
-def get_yomamajoke():
-  response=requests.get("https://api.yomomma.info/")
-  joke=json.loads(response.text)
+async def get_yomamajoke():
+  async with ClientSession() as session:
+    response=await session.get("https://api.yomomma.info/")
+    joke=await response.json()
   return joke['joke']
 
 #async def async_get_meme(subreddit_name):
@@ -77,7 +81,7 @@ class fun(commands.Cog):
   async def cnjoke(self,ctx):
     print("CN Joke Triggered.")
     msg=await ctx.send("Ringing `Chuck Norris` now. He's 81, it won't take him long though")
-    joke=get_cnjoke()
+    joke=await get_cnjoke()
     await ctx.send(joke)
     await msg.delete()
 
@@ -101,7 +105,7 @@ class fun(commands.Cog):
       return
     #print("Category= "+category)
     msg= await ctx.send("Retreiving jokes from the Interwebs.")
-    joke=get_regjoke(category)
+    joke=await get_regjoke(category)
     if joke["type"] == "single": # Print the joke
       await ctx.send("`"+joke["joke"]+"`")
       await msg.delete()
@@ -120,7 +124,7 @@ class fun(commands.Cog):
   async def yomama(self,ctx):
     print("YoMama Joke Triggered.")
     msg=await ctx.send("Ringing `Yo Mama` now.")
-    joke=get_yomamajoke()
+    joke=await get_yomamajoke()
     await ctx.send(joke)
     await msg.delete()
 

@@ -9,3 +9,5 @@ pbvenv/
 .vscode/
 #Secrets
 .env
+*.pyc
+*.pyc

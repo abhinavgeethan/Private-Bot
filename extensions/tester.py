@@ -16,7 +16,6 @@ class tester(commands.Cog):
   async def ping(self,ctx):
     await ctx.send(f'Pong! Server-Bot latency is {round(self.client.latency * 1000)}ms')
 
-  
   @commands.command(help='Checks server status.')
   async def status(self,ctx):
     msg=await ctx.send('Requesting for Status')
@@ -52,7 +51,6 @@ class tester(commands.Cog):
     except:
       await send_embed(ctx.channel,f"{botName} Server Status",'The monitoring server is malfunctioning. {botName} is up and running.',discord.Colour.orange(),footer='clear')
     await msg.delete()
-  
 
 def setup(client):
   client.add_cog(tester(client))
