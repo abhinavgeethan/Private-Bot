@@ -5,7 +5,19 @@ import os
 
 #__all__=["send_embed","get_channel_by_name","get_category_by_name","create_text_channel","create_voice_channel","get_quote","initial_catalog","get_catalog_size","data_catalog","check_conn_perms","update_lock_status","check_vis_perms","update_visibility_status","if_owner","get_bot_status"]
 
-async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,timestamp=None,footer='default'):
+with open("./Config.json") as config_file:
+  config_dict=json.load(config_file)
+
+class field:
+  def __init__(self,name,value,inline=False):
+    self.name=name
+    self.value=value
+    self.inline=inline
+  
+  def to_text(self):
+    return f"Name: {self.name}, Value: {self.value}, Inline: {self.inline}"
+
+async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,timestamp=None,footer='default',isInteractionResponse:bool=False):
   if timestamp==None:
     embed=discord.Embed(title=title,description=description,colour=colour)
   else:
@@ -29,7 +41,7 @@ async def send_embed(channel,title,description,colour=discord.Colour.blue(),imag
     else:
       field=fields[0]
       embed.add_field(name=field.name, value=field.value, inline=field.inline)
-  if not send:
+  if not send or isInteractionResponse:
     return embed
   message=await channel.send(embed=embed)
   return message

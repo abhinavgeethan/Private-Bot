@@ -1,17 +1,18 @@
 import os
+from secrets import choice
 import discord
-# import json
+from typing import Optional
+from utils import send_embed, config_dict
 from aiohttp import ClientSession
 import requests
 import asyncio
+from discord import app_commands
 from discord.ext import commands
-# from jokeapi import Jokes
-from main import botPrefix
 import random
-from utils import send_embed
 import praw
 import prawcore
 
+botPrefix=config_dict['botPrefix']
 #-------------------------------------------------------------External API Calls--------------------------------------------------------#
 async def get_cnjoke():
   async with ClientSession() as session:
@@ -161,36 +162,83 @@ class fun(commands.Cog):
       await ctx.send(f"The format is: `{botPrefix} rps <choice>`.\nYou must enter either **Rock**, **Paper** *or* **Scissors** in place of `<choice>`.")
     else:
       await ctx.send("That seems like a wrong choice. Try again with either **Rock**, **Paper** *or* **Scissors**.")
+  
+  
+  #rps app_command
+  @app_commands.command(name='rps',description="Plays Rock, Paper Scissors")
+  @app_commands.describe(choice='Your move')
+  @app_commands.choices(choice=[
+    app_commands.Choice(name='Rock 🪨', value=3),
+    app_commands.Choice(name='Paper 📃', value=1),
+    app_commands.Choice(name='Scissors ✂️', value=2)
+  ])
+  async def _rps(self,interaction:discord.Interaction,choice: app_commands.Choice[int]):
+    uVal=choice.value
+    b_choices=[{'name':'**Rock 🪨**','value':3}, {'name':'**Paper 📃**','value':1}, {'name':'**Scissors ✂️**','value':2}]
+    bChoice=random.choice(b_choices)
+    bVal=bChoice['value']
+    if uVal==bVal:
+      res="It's a **tie**!"
+    elif uVal>bVal:
+      if not (uVal==3 and bVal==1):
+        posResponse=["**You beat me!**","**Oh no! You've beaten me**.","**You've Won**!"]
+        res=random.choice(posResponse)
+      else:
+        res="Haha! **I win**."
+    else:
+        if not (uVal==1 and bVal==3):
+          res="You lose! **I win**!"
+        else:
+          posResponse=["**You beat me!**","**Oh no! You've beaten me**.","**You've Won**!"]
+          res=random.choice(posResponse)  
+
+    await interaction.response.send_message(content=f"You chose **{choice.name}** and I chose {bChoice['name']}.\n{res}")
+    # await interaction.response.send_message(content=res)
 
   #rickroll command
-  @commands.command(help='Rickrolls the mentioned user anonymously.')
-  async def rickroll(self,ctx,member: discord.Member):
+  @commands.hybrid_command(name='rickroll',help='Rickrolls the mentioned user anonymously.')
+  @app_commands.describe(user='User to rickroll')
+  async def rickroll(self,ctx,user:discord.Member):
+    from_interaction=ctx.interaction!=None
     if bool(random.getrandbits(1)):
       try:
-        #names=['Felix','Sean','Jack']
         prompt=['Link','Cats','Dogs','Cyberpunk','Discord Bots']
-        #if bool(random.getrandbits(1)):
         embed=await send_embed(ctx.channel,title=" ",description=f"You should check this out: [{random.choice(prompt)}](https://youtu.be/dQw4w9WgXcQ?t=43)",send=False,footer='clear')
-        await member.send(embed=embed)
-        #else:
-        #  await member.send('|| https://tenor.com/view/rick-roll-rick-astley-never-gonna-give-you-up-gif-13662086 ||')
-        await ctx.send(f"`{member.name}` has been rickrolled lol.")
+        await user.send(embed=embed)
+        if not from_interaction:
+          await ctx.send(f"`{user.name}` has been rickrolled lol.")
+        else:
+          await ctx.interaction.response.send_message(content=f"`{user.name}` has been rickrolled lol.")
       except:
-        await ctx.send(f"`{member.name}` has their DM's closed. You can try sending them this: `https://youtu.be/dQw4w9WgXcQ?t=43`.\n Or... *Get a Life*.")
+        if not from_interaction:
+          await ctx.send(f"`{user.name}` has their DM's closed. You can try sending them this: `https://youtu.be/dQw4w9WgXcQ?t=43`.\n Or... *Get a Life*.")
+        else:
+          await ctx.interaction.response.send_message(content=f"`{user.name}` has their DM's closed. You can try sending them this: `https://youtu.be/dQw4w9WgXcQ?t=43`.\n Or... *Get a Life*.")
     else:
-      await ctx.send('Instead, *Get a Life* maybe?\nOr just *try again* ;)')
+      if not from_interaction:
+        await ctx.send('Instead, *Get a Life* maybe?\nOr just *try again* ;)')
+      else:
+        await ctx.interaction.response.send_message(content='Instead, *Get a Life* maybe?\nOr just *try again* ;)')
   
 
-  @commands.command(help="Calculates your compatibility with the mentioned person.")
+  @commands.hybrid_command(name='match',help="Calculates your compatibility with the mentioned person.")
+  @app_commands.describe(member='User to check compatibility with')
   async def match(self,ctx,member: discord.Member):
+    from_interaction=ctx.interaction!=None
     if bool(random.getrandbits(1)):
       vals=['93','82','87','95','99','89','90','80','97']
       posResponse=random.choice(['Get a room you guys.','Want me to help set up a Date?'])
-      await ctx.send(f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. ❤!\n*{posResponse}* Just click on the Template voice channel ;).")
+      if not from_interaction:
+        await ctx.send(f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. ❤!\n*{posResponse}* Just click on the Template voice channel ;).")
+      else:  
+        await ctx.interaction.response.send_message(content=f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. ❤!\n*{posResponse}* Just click on the Template voice channel ;).")
     else:
       vals=['13','22','47','35','29','19','30','50','37']
       negResponse=random.choice(['Ouch.','Sheesh!'])
-      await ctx.send(f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. 💙.\n*{negResponse}*")
+      if not from_interaction:
+        await ctx.send(f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. 💙.\n*{negResponse}*")
+      else:  
+        await ctx.interaction.response.send_message(content=f"{ctx.author.mention}, you are **{random.choice(vals)}%** compatible with {member.mention}. 💙.\n*{negResponse}*")
 
   
   @commands.command(help="Gets a meme from the specified subreddit.",aliases=['meme'])
@@ -210,16 +258,24 @@ class fun(commands.Cog):
       await send_embed(ctx.channel,"","**"+title+"**",image_url=image_url,author=f"r/{subreddit}",footer=f'Slow/Missing media content is usually caused from Discord\'s end. If it is a persistent issue do report it using {botPrefix} support.')
 
 
-  @commands.command(help="Insults the mentioned person.")
-  async def insult(self,ctx,target: discord.Member=None):
+  @commands.hybrid_command(name='insult',help="Insults the mentioned person.")
+  @app_commands.describe(target='User to insult')
+  async def insult(self,ctx,target: Optional[discord.Member]):
+    from_interaction=ctx.interaction!=None
     if not target:
       target=ctx.author
     try:
       response=requests.get('https://evilinsult.com/generate_insult.php')
       insult=response.text.replace('&quot;','\"').replace("&gt;","")
-      await ctx.send(f"{target.mention}, "+(insult[0].lower() if not insult.startswith("I ") else insult[0])+insult[1:])
+      if not from_interaction:
+        await ctx.send(f"{target.mention}, "+(insult[0].lower() if not insult.startswith("I ") else insult[0])+insult[1:])
+      else:  
+        await ctx.interaction.response.send_message(content=f"{target.mention}, "+(insult[0].lower() if not insult.startswith("I ") else insult[0])+insult[1:])
     except:
-      await ctx.send("Get a life.")
+      if not from_interaction:
+        await ctx.send("Get a life.")
+      else:
+        await ctx.interaction.response.send_message(content="Get a life.")
 
-def setup(client):
-  client.add_cog(fun(client))
+async def setup(client):
+  await client.add_cog(fun(client))

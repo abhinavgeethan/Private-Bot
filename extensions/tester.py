@@ -1,12 +1,14 @@
 import os
 import discord
 from discord.ext import commands
-from utils import send_embed
-from main import field,botName
+from utils import send_embed,field
+from utils import config_dict as config
 import requests
 import aiohttp
 from aiohttp import ClientSession
+import json
 
+botName=config['botName']
 class tester(commands.Cog):
   
   def __init__(self,client):
@@ -52,5 +54,5 @@ class tester(commands.Cog):
       await send_embed(ctx.channel,f"{botName} Server Status",'The monitoring server is malfunctioning. {botName} is up and running.',discord.Colour.orange(),footer='clear')
     await msg.delete()
 
-def setup(client):
-  client.add_cog(tester(client))
+async def setup(client):
+  await client.add_cog(tester(client))

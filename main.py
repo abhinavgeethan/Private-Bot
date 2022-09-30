@@ -1,71 +1,99 @@
+import dis
 import os
 import discord
+from discord import app_commands
 from discord.ext import commands
 from discord.utils import get
 from datetime import datetime
 import json
-from keep_alive import keep_alive
+# from keep_alive import keep_alive #Uncomment
 from utils import *
+from asyncio import run as AsyncRun
+
+# Dev Only
+from dotenv import load_dotenv
+load_dotenv() 
 
 token = os.environ['TOKEN']
 
 #-----------------------------------------Customize for Unique Implementations-----------------------------------------------#
-botPrefix = 'pb' #manually edit in Commands.json
-botName='Private Bot'
-templateChannel = 'Template'
+config=config_dict
+botPrefix=config['botPrefix']
 specialServers=[832994908973170769]
-masterGuild=846437321552822332
-updateChannel=846443765925281812
-reaction_emojis=['\U0001F512','\U0001F513','\U0001F441','\u23ea','\u25c0','\u25b6','\u23e9','\U00002705',"\U0001f7e5","\U0001f7e6","\U0001f7e7","\U0001f7e8","\U0001f7e9","\U0001f7ea","\U0001f7eb","\U00002b1b","\U00002b1c"]
+masterGuild=config['masterGuild']
+updateChannel=config['updateChannel']
+reaction_emojis=[
+        "\U0001F512",
+        "\U0001F513",
+        "\U0001F441",
+        "\u23ea",
+        "\u25c0",
+        "\u25b6",
+        "\u23e9",
+        "\U00002705",
+        "\U0001f7e5",
+        "\U0001f7e6",
+        "\U0001f7e7",
+        "\U0001f7e8",
+        "\U0001f7e9",
+        "\U0001f7ea",
+        "\U0001f7eb",
+        "\U00002b1b",
+        "\U00002b1c"
+    ],
 monitorName='private bot monitor'
-description='This is a bot currently under development by abhinavgeethan#1933. To know more, report bugs, or suggest features head on over to https://discord.gg/YcBDMmQ4nt.'
-client = commands.Bot(command_prefix=botPrefix+" ",intents=discord.Intents().all(),case_insensitive=True, description=description, owner_id=710430416045080656)
-
+# client = commands.Bot(command_prefix=config['botPrefix']+" ",intents=discord.Intents().all(),case_insensitive=True, description=description, owner_id=710430416045080656)
 #-------------------------------------------Important Customizable Functions-------------------------------------------------#
-class field:
-  def __init__(self,name,value,inline=False):
-    self.name=name
-    self.value=value
-    self.inline=inline
+
+async def load_cogs(client):
+  await client.load_extension('extensions.tester')
+  await client.load_extension('extensions.tmdb_cog')
+  await client.load_extension('extensions.fun')
+  await client.load_extension('extensions.general')
+  await client.load_extension('extensions.dicti_cog')
+  # await client.load_extension('extensions.tourney')
+  # await client.load_extension('extensions.rxnrole')
+  await client.load_extension('extensions.games')
+  print("Loaded Cogs")
+
+async def unload_cogs(client):
+  await client.unload_extension('extensions.tester')
+  await client.unload_extension('extensions.tmdb_cog')
+  await client.unload_extension('extensions.fun')
+  await client.unload_extension('extensions.general')
+  await client.unload_extension('extensions.dicti_cog')
+  # await client.unload_extension('extensions.tourney')
+  # await client.unload_extension('extensions.rxnrole')
+  await client.unload_extension('extensions.games')
+  print("Unloaded Cogs")
+
+async def reload_cogs(client):
+  await client.reload_extension('extensions.tester')
+  await client.reload_extension('extensions.tmdb_cog')
+  await client.reload_extension('extensions.fun')
+  await client.reload_extension('extensions.general')
+  await client.reload_extension('extensions.dicti_cog')
+  # await client.reload_extension('extensions.tourney')
+  # await client.reload_extension('extensions.rxnrole')
+  await client.reload_extension('extensions.games')
+  print("Reloaded Cogs")
+
+# client=commands.Bot(command_prefix=config['botPrefix']+' ', description=config['description'], intents=discord.Intents.all(), case_insensitive=True,owner_id=config['owner_id'])
+
+class MyClient(commands.Bot):
+  def __init__(self, config) -> None:
+    myIntents=discord.Intents.all()
+    super().__init__(command_prefix=config['botPrefix']+' ', description=config['description'], intents=myIntents, case_insensitive=True,owner_id=config['owner_id'])
   
-  def to_text(self):
-    return f"Name: {self.name}, Value: {self.value}, Inline: {self.inline}"
-    
-#async def clear_messages(channel,limit):
-#  msgs=[]
-#  async for x in client.logs_from(channel,limit=limit):
-#    msgs.append(x)
-#  await client.delete_messages(msgs)
+  async def setup_hook(self):
+    await load_cogs(self)
+    comms=await self.tree.sync()
+    print(f'Synced {len(comms)} app_commands.')
 
-def is_me(m):
-    return m.author == client.user or m.author.name.lower() == monitorName
-#edit before deployment
-def unload_cogs():
-  #for filename in os.listdir('./extensions'):
-  #  if filename.endswith('.py'):
-  client.unload_extension('extensions.tester')
-  client.unload_extension('extensions.tmdb_cog')
-  client.unload_extension('extensions.fun')
-  client.unload_extension('extensions.general')
-  client.unload_extension('extensions.dicti_cog')
-  # client.unload_extension('extensions.tourney')
-  client.unload_extension('extensions.rxnrole')
-  client.unload_extension('extensions.games')
-  pass
-#edit before deployment
-def load_cogs():
-  #for filename in os.listdir('./extensions'):
-  #if filename.endswith('.py'):
-  client.load_extension('extensions.tester')
-  client.load_extension('extensions.tmdb_cog')
-  client.load_extension('extensions.fun')
-  client.load_extension('extensions.general')
-  client.load_extension('extensions.dicti_cog')
-  # client.load_extension('extensions.tourney')
-  client.load_extension('extensions.rxnrole')
-  client.load_extension('extensions.games')
-  pass
+client=MyClient(config)
 
+def is_me(interaction: discord.Interaction) -> bool:
+    return interaction.user.id == 710430416045080656
 
 async def send_on_pvt_channel_creation(channel):
     await channel.send("Hello There!")
@@ -105,7 +133,7 @@ async def send_on_pvt_channel_creation(channel):
 
 #-------------------------------------------------------General Commands-----------------------------------------------------#
 #inspire command
-@client.command(help='Returns an inspirational quote from the interwebs.')
+@client.hybrid_command(name='inspire',help='Returns an inspirational quote from the interwebs.')
 async def inspire(ctx):
   quote=get_quote()
   await ctx.send("`"+quote+"`")
@@ -118,14 +146,36 @@ async def hello(ctx):
 
 #----------------------------------------------------Developer Command-------------------------------------------------------#
 #refresh command
-@client.command(help="Reloads all Cogs. Dev-only Command",hidden=True)
+@client.hybrid_command(name='refresh',help="Reloads all Cogs. Dev-only Command",hidden=True)
+@app_commands.check(is_me)
 async def refresh(ctx):
   if ctx.author.id==710430416045080656:
-    unload_cogs()
-    load_cogs()
+    await reload_cogs(client)
     await ctx.send("All cogs reloaded.")
   else:
     await ctx.send("You do not have sufficient permissions to invoke this command at the moment.")
+
+@refresh.error
+async def is_me_error(ctx,error):
+  if isinstance(error,commands.errors.CheckFailure):
+    response_embed=await send_embed(ctx.channel,"Error","You do not have sufficient permissions to invoke this command at the moment.",discord.Color.red(),isInteractionResponse=True)
+    await ctx.interaction.response.send_message(embed=response_embed)
+
+#sync command
+@client.tree.command(name='sync',description="Sync all app_commands. Dev-only Command")
+@app_commands.check(is_me)
+async def _sync(interaction:discord.Interaction):
+  comms=await client.tree.sync()
+  print(f"Synced {len(comms)} app_commands.")
+  await interaction.response.send_message(content=f"{len(comms)} app commands synced with all guilds.")
+
+@_sync.error
+async def sync_error(interaction,error):
+  if isinstance(error,app_commands.errors.CheckFailure):
+    response_embed=await send_embed(interaction.channel,"Error","You do not have sufficient permissions to invoke this command at the moment.",discord.Color.red(),isInteractionResponse=True)
+    await interaction.response.send_message(embed=response_embed)
+  else:
+    raise
 
 
 #------------------------------------------------Private Channel Commands----------------------------------------------------#
@@ -170,15 +220,16 @@ async def pvtinvite(ctx,member: discord.Member):
 @client.event
 async def on_ready():
     print('We are logged in as {0.user}'.format(client))
-    channel=client.get_channel(updateChannel)
-    await channel.purge(limit=3,check=is_me)
-    response_time,avg,status=get_bot_status()
-    if status==2:
-      print("UptimeRobot reports the bot to be UP.")
-    else:
-      print("UptimeRobot does not give an accurate report.")
-    await send_embed(channel,"Status",f"**{botName} is now online and operational.**",discord.Color.green(),timestamp=datetime.now(),footer='clear',fields=[field("Discord API",f"{round(client.latency * 1000)} ms",True),field("Round-Trip Response",f"{response_time}"+(" ms" if response_time!='Unavailable' else '')+f"\nAverage: {avg}"+(" ms" if avg!='Unavailable' else ''),True)])
-    await send_embed(channel,"","It can take upto **4** minutes to confirm that the bot is down.",footer='If you encounter an undetected downtime head over to #bug-report.')
+    # TODO: Uncomment for Prod
+    # channel=client.get_channel(updateChannel)
+    # await channel.purge(limit=3,check=is_me)
+    # response_time,avg,status=get_bot_status()
+    # if status==2:
+    #   print("UptimeRobot reports the bot to be UP.")
+    # else:
+    #   print("UptimeRobot does not give an accurate report.")
+    # await send_embed(channel,"Status",f"**{config['botName']} is now online and operational.**",discord.Color.green(),timestamp=datetime.now(),footer='clear',fields=[field("Discord API",f"{round(client.latency * 1000)} ms",True),field("Round-Trip Response",f"{response_time}"+(" ms" if response_time!='Unavailable' else '')+f"\nAverage: {avg}"+(" ms" if avg!='Unavailable' else ''),True)])
+    # await send_embed(channel,"","It can take upto **4** minutes to confirm that the bot is down.",footer='If you encounter an undetected downtime head over to #bug-report.')
 
 #Reaction Listeners
 @client.event
@@ -211,7 +262,7 @@ async def on_raw_reaction_add(payload):
           break
       if role:
         try:
-          await payload.member.add_roles(role,reason=f"Reacted on {botName}'s Reaction Role post with id: {id}")
+          await payload.member.add_roles(role,reason=f"Reacted on {config['botName']}'s Reaction Role post with id: {id}")
         except:
           print("RR: Role Assign Failed due to:")
           await channel.send(f"{payload.member.mention}, I could not give you the {role.mention} role.")
@@ -433,9 +484,8 @@ async def on_raw_reaction_add(payload):
             await message.delete()
             await channel.send(f"{target.name} has been kicked.")
 
-
-#@client.event
-#async def on_raw_reaction_remove(payload):
+@client.event
+async def on_raw_reaction_remove(payload):
 #  tGuild=client.get_guild(payload.guild_id)
 #  tMember=tGuild.get_member(payload.user_id)
 #  if tMember.bot==0:
@@ -472,9 +522,7 @@ async def on_raw_reaction_add(payload):
 #        permsEveryone = vChannel.overwrites_for(client.get_guild(payload.guild_id).default_role)
 #        permsEveryone.connect=None
 #        await vChannel.set_permissions(client.get_guild(payload.guild_id).default_role, overwrite=permsEveryone)
-
-
-#inspire command
+  pass
 
 #Voice State Listeners
 @client.event
@@ -510,7 +558,7 @@ async def on_voice_state_update(member, before, after):
 
   #creating channels
   if after.channel is not None:
-    if after.channel.name == templateChannel:
+    if after.channel.name == config['templateChannel']:
         #print("Transfer")
         guild=after.channel.guild
         check=await if_owner(guild,member)
@@ -580,7 +628,6 @@ async def on_command_error(ctx,error):
       if comm_list[i]['identifier']==comm:
         syntax=comm_list[i]['syntax']
         break
-    #await ctx.send(f"One or more required inputs weren't provided.\nThe correct syntax is: {syntax}.")
     await send_embed(ctx.channel,"",'One or more required inputs weren\'t provided.',discord.Colour.red(),fields=[field('The correct syntax is:',f"{syntax}")],footer='clear')
   elif isinstance(error,commands.DisabledCommand):
     await send_embed(ctx.channel,'',f"`{botPrefix} {ctx.command.name}` is temporarily disabled.",discord.Colour.red(),footer='clear')
@@ -592,10 +639,11 @@ async def on_command_error(ctx,error):
     await send_embed(ctx.channel,'',f"Role: `{error.missing_role}` is required to invoke that command.",discord.Colour.red(),footer='clear')
   elif isinstance(error,commands.CommandNotFound):
     pass
+  elif isinstance(error,commands.errors.CheckFailure):
+    pass
   else:
     await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
     raise error
 
-load_cogs()
-keep_alive()
+# keep_alive() # TODO: Uncomment for Prod
 client.run(token)

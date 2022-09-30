@@ -2,11 +2,11 @@ import asyncio
 import discord
 import random
 from discord.ext import commands
-from utils import send_embed
-from main import botName,field
+from utils import send_embed,field,config_dict
 import math
 from concurrent.futures import ThreadPoolExecutor
 
+botName=config_dict['botName']
 class tictactoe():
     def __init__(self):
         self.game_matrix=self.make_game_matrix()
@@ -354,5 +354,5 @@ class games(commands.Cog):
                     
         
     
-def setup(client):
-    client.add_cog(games(client))
+async def setup(client):
+    await client.add_cog(games(client))

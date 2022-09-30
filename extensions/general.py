@@ -1,11 +1,12 @@
 import discord
 import json
 from discord.ext import commands
-from utils import send_embed
-from main import botPrefix, botName,field
+from utils import send_embed,field,config_dict
 from aiohttp import ClientSession
 import os
 
+botPrefix=config_dict['botPrefix']
+botName=config_dict['botName']
 class general(commands.Cog):
 
   def __init__(self,client):
@@ -108,5 +109,5 @@ class general(commands.Cog):
 
     await send_embed(ctx.channel,f"{botName} Commands","Use them wisely.\n\u200b\n",fields=fields,footer='Arguments inside [] are optional and those inside <> are necessary.')
 
-def setup(client):
-  client.add_cog(general(client))
+async def setup(client):
+  await client.add_cog(general(client))

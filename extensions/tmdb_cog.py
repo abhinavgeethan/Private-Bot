@@ -3,10 +3,11 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 from tmdbv3api import TMDb, Movie
-from utils import send_embed
-from main import field,botPrefix
+from utils import send_embed,field
+from utils import config_dict as config
 import json
 
+botPrefix=config['botPrefix']
 tmdb = TMDb()
 tmdb.api_key = os.environ['tbdbv3_token']
 tmdb.language = 'en'
@@ -164,45 +165,59 @@ class tmdb_cog(commands.Cog):
   def __init__(self,client):
     self.client=client
 
-  @commands.command(help="Displays Details about Movie from TMDB")
+  @commands.hybrid_command(name='movie',help="Displays Details about Movie from TMDB")
   async def movie(self,ctx,*,movie):
-    #print(rt.API_KEY)
-    msg=await ctx.send(f'Awaiting response from TMDB for: {movie}')
+    from_interaction=ctx.interaction!=None
+    if not from_interaction:
+      msg=await ctx.send(f'Awaiting response from TMDB for: {movie}')
     try:
       movie=get_movie(movie)
-      await msg.delete()
-      print(f"Movie discovered: {movie.title}, id = {movie.id}")
       rating=[field(f"TMDB Rating: {movie.vote_average}","**Poster:**")]  if movie.vote_average != None else None
-      await send_embed(ctx.message.channel,movie.title,"**Synopsis**\n"+'*'+movie.overview+'*',image_url='http://image.tmdb.org/t/p/original/'+movie.poster_path,fields=rating)
+      if not from_interaction:
+        await msg.delete()
+        await send_embed(ctx.message.channel,movie.title,"**Synopsis**\n"+'*'+movie.overview+'*',image_url='http://image.tmdb.org/t/p/original/'+movie.poster_path,fields=rating)
+      else:
+        response_embed=await send_embed(ctx.message.channel,movie.title,"**Synopsis**\n"+'*'+movie.overview+'*',image_url='http://image.tmdb.org/t/p/original/'+movie.poster_path,fields=rating,isInteractionResponse=from_interaction)
+        await ctx.interaction.response.send_message(embed=response_embed)
     except:
-      await msg.delete()
-      await ctx.send(f"{movie} could not be found.")
+      if not from_interaction:
+        await msg.delete()
+        await ctx.send(f"`{movie}` could not be found.")
+      else:
+        response_embed=await send_embed(ctx.channel,'',f"Movie:`{movie}` was not found.",discord.Colour.red(),footer='clear',isInteractionResponse=from_interaction)
+        await ctx.interaction.response.send_message(embed=response_embed)
 
-  @commands.command(help="Retreives information about specified Anime.")
+  @commands.hybrid_command(name='anime',help="Retreives information about specified Anime.")
   async def anime(self,ctx,*,term):
+    from_interaction=ctx.interaction!=None
     embed=await get_anime(term,"ANIME")
     if embed!=-1:
-      await ctx.send(embed=embed)
+      if not from_interaction:
+        await ctx.send(embed=embed)
+      else:  
+        await ctx.interaction.response.send_message(embed=embed)
     else:
-      await send_embed(ctx.channel,'',f"Anime:`{term}` was not found.",discord.Colour.red(),footer='clear')
+      if not from_interaction:
+        await send_embed(ctx.channel,'',f"Anime:`{term}` was not found.",discord.Colour.red(),footer='clear')
+      else:
+        response_embed=await send_embed(ctx.channel,'',f"Anime:`{term}` was not found.",discord.Colour.red(),footer='clear',isInteractionResponse=from_interaction)
+        await ctx.interaction.response.send_message(embed=response_embed)
 
-  #@anime.error
-  #async def on_anime_error(self,ctx,error):
-  #  await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
-  #  raise error
-  
-  @commands.command(help="Retreives information about specified Manga.")
+  @commands.hybrid_command(name='manga',help="Retreives information about specified Manga.")
   async def manga(self,ctx,*,term):
+    from_interaction=ctx.interaction!=None
     embed=await get_anime(term,"MANGA")
     if embed!=-1:
-      await ctx.send(embed=embed)
+      if not from_interaction:
+        await ctx.send(embed=embed)
+      else:  
+        await ctx.interaction.response.send_message(embed=embed)
     else:
-      await send_embed(ctx.channel,'',f"Manga:`{term}` was not found.",discord.Colour.red(),footer='clear')
+      if not from_interaction:
+        await send_embed(ctx.channel,'',f"Manga:`{term}` was not found.",discord.Colour.red(),footer='clear')
+      else:  
+        response_embed=await send_embed(ctx.channel,'',f"Manga:`{term}` was not found.",discord.Colour.red(),footer='clear',isInteractionResponse=from_interaction)
+        await ctx.interaction.response.send_message(embed=response_embed)
 
-  #@manga.error
-  #async def on_manga_error(self,ctx,error):
-  #  await send_embed(ctx.channel,"Error",f"An unexpected error occurred. Use `{botPrefix} commands` to verify your syntax.",discord.Color.red(),footer=f'Alternatively, try again later; if the issue persists use {botPrefix} support to report the issue.')
-  #  raise error
-    
-def setup(client):
-  client.add_cog(tmdb_cog(client))
+async def setup(client):
+  await client.add_cog(tmdb_cog(client))
