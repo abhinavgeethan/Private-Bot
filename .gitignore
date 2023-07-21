@@ -1,14 +1,24 @@
 #Py Cache
 __pycache__/
 extensions/__pycache__
+
 #Packager Files
 *.lock
 *.toml
+
 #Venv
 pbvenv/
 dev-venv/
+venv/
+
 .vscode/
+
 #Secrets
 .env
 *.pyc
 *.pyc
+
+#Replit
+.breakpoints
+.replit
+replit.nix
