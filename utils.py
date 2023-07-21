@@ -2,6 +2,7 @@ import discord
 import requests
 import json
 import os
+from typing import Optional
 
 #__all__=["send_embed","get_channel_by_name","get_category_by_name","create_text_channel","create_voice_channel","get_quote","initial_catalog","get_catalog_size","data_catalog","check_conn_perms","update_lock_status","check_vis_perms","update_visibility_status","if_owner","get_bot_status"]
 
@@ -17,7 +18,7 @@ class field:
   def to_text(self):
     return f"Name: {self.name}, Value: {self.value}, Inline: {self.inline}"
 
-async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,timestamp=None,footer='default',isInteractionResponse:bool=False):
+async def send_embed(channel,title,description,colour=discord.Colour.blue(),image_url=None,thumbnail_url=None,fields=None,send=True,author=None,timestamp=None,footer='default',isInteractionResponse:bool=False,view:Optional[discord.ui.View]=None):
   if timestamp==None:
     embed=discord.Embed(title=title,description=description,colour=colour)
   else:
@@ -43,7 +44,7 @@ async def send_embed(channel,title,description,colour=discord.Colour.blue(),imag
       embed.add_field(name=field.name, value=field.value, inline=field.inline)
   if not send or isInteractionResponse:
     return embed
-  message=await channel.send(embed=embed)
+  message=await channel.send(embed=embed,view=view)
   return message
 
 

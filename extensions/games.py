@@ -137,6 +137,111 @@ class tictactoe_ai_player():
         
         return best_move
 
+class Hangman():
+    def __init__(self):
+        self.organs_left:int=5
+        self.tries:int=0
+        self.game_over=False
+        self.no_of_choices=5
+        self.letters_left:list=[x for x in "abcdefghijklmnopqrstuvwxyz"]
+        self.target:list=[x for x in self.getMovie()]
+        self.current_state:list=['_' if x!=' ' else ' ' for x in self.target]
+    
+    def getMovie() -> str:
+        return "Titanic".lower()
+
+    def getStickFigure(self) -> str:
+        if self.organs_left>=5:
+            return '''
+                    +---+
+                    |   |
+                    O   |
+                   /|\  |
+                   / \  |
+                        |
+                    ========='''
+        elif self.organs_left==4:
+            return '''
+                    +---+
+                    |   |
+                    O   |
+                   /|\  |
+                   /    |
+                        |
+                    ========='''
+        elif self.organs_left==3:
+            return '''
+                    +---+
+                    |   |
+                    O   |
+                   /|\  |
+                        |
+                        |
+                    ========='''
+        elif self.organs_left==2:
+            return '''
+                    +---+
+                    |   |
+                    O   |
+                   /|   |
+                        |
+                        |
+                    ========='''
+        elif self.organs_left==1:
+            return '''
+                    +---+
+                    |   |
+                    O   |
+                    |   |
+                        |
+                        |
+                    ========='''
+        else:
+            return '''
+                    +---+
+                    |   |
+                    X   |
+                        |
+                        |
+                        |
+                    ========='''
+
+    def setGameOver(self) -> None:
+        if self.current_state==self.target or self.organs_left<=0 or len(self.letters_left)==0:
+            self.game_over=True
+
+    def getChoices(self) -> list:
+        letters_not_found=[x for x in list(set(self.target)) if x not in self.current_state]
+        sample_set=set(letters_not_found,self.letters_left)
+        return random.sample(sample_set,self.no_of_choices)
+
+    def attempt(self,letter:str) -> bool:
+        self.tries+=1
+        self.letters_left.remove(letter)
+        if letter in self.target:
+            for i in range(len(self.target)):
+                if self.target[i]==letter:
+                    self.current_state[i]=letter
+            return True
+        else:
+            self.organs_left-=1
+            return False
+
+    def makeAttempt(self,letter:str)->"dict['status':str,'image_link':str]":
+        ret_object = {'status':"Invalid Attempt",'image_link':None}
+        if not (not letter or len(letter)>1 or len(letter)==0):
+            result = self.attempt(letter)
+            self.setGameOver()
+            image_link = self.getStickFigure()
+            if not result:
+                # Letter not in target string
+                ret_object['status']="Incorrect"
+            else:
+                # Correct Attempt
+                ret_object['status']="Correct"
+            ret_object['image_link']=image_link
+        return ret_object
+
 class games(commands.Cog):
     def __init__(self,client):
         self.client=client
@@ -351,6 +456,11 @@ class games(commands.Cog):
                     await self.game_run(ctx)
                 else:
                     await ctx.send("You cannot play with a Bot.")
+    
+    @commands.command(help="Plays Hangman")
+    async def hangman(self,ctx):
+        H=Hangman()
+        await H.run(ctx)
                     
         
     

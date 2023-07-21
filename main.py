@@ -128,7 +128,8 @@ async def send_on_pvt_channel_creation(channel):
         "\u200b"
       )
       ]
-    message=await send_embed(channel,title,description,colour,fields=fields,footer=botPrefix.upper()+"PVT"+str(channel.id)[-5:])
+    view=ChannelControls()
+    message=await send_embed(channel,title,description,colour,fields=fields,footer=botPrefix.upper()+"PVT"+str(channel.id)[-5:],view=view)
     return message
 
 #-------------------------------------------------------General Commands-----------------------------------------------------#
@@ -202,7 +203,7 @@ async def votekick(ctx, member: discord.Member):
 
 
 #pvtinvite to pvt channel command
-@client.command(help="Invites mentioned user to private voice channel.")
+@client.hybrid_command(help="Invites mentioned user to private voice channel.")
 async def pvtinvite(ctx,member: discord.Member):
   if ctx.message.channel.name.endswith('-channel'):
     for roles in ctx.author.roles:
@@ -523,6 +524,60 @@ async def on_raw_reaction_remove(payload):
 #        permsEveryone.connect=None
 #        await vChannel.set_permissions(client.get_guild(payload.guild_id).default_role, overwrite=permsEveryone)
   pass
+
+class ChannelControls(discord.ui.View):
+  def __init__(self):
+    super().__init__()
+
+  @discord.ui.button(label='Lock',emoji='🔒')
+  async def lock_channel(self, interaction:discord.Interaction,button: discord.ui.Button):
+    guild=interaction.guild
+    txtChannel=interaction.channel
+    for role in interaction.user.roles:
+          if role.name.endswith('channel member'):
+            vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
+            role=role
+            break
+    # Voice Channel
+    permsMember = vChannel.overwrites_for(role)
+    permsMember.connect=True
+    await vChannel.set_permissions(role, overwrite=permsMember)
+    permsEveryone = vChannel.overwrites_for(guild.default_role)
+    permsEveryone.connect=False
+    await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+    # Text Channel
+    permsMember = txtChannel.overwrites_for(role)
+    permsMember.send_messages=True
+    await txtChannel.set_permissions(role, overwrite=permsMember)
+    permsEveryone = txtChannel.overwrites_for(guild.default_role)
+    permsEveryone.send_messages=False
+    await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+    button.disabled=True
+
+  @discord.ui.button(label='Unlock',emoji='🔓')
+  async def unlock_channel(self, interaction:discord.Interaction,button: discord.ui.Button):
+    guild=interaction.guild
+    txtChannel=interaction.channel
+    for role in interaction.user.roles:
+          if role.name.endswith('channel member'):
+            vChannel=get_channel_by_name(guild,channel_name=str(role.name)[0:-15]+'\'s Channel')
+            role=role
+            break
+    # Voice Channel
+    permsMember = vChannel.overwrites_for(role)
+    permsMember.connect=None
+    await vChannel.set_permissions(role, overwrite=permsMember)
+    permsEveryone = vChannel.overwrites_for(guild.default_role)
+    permsEveryone.connect=None
+    await vChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+    # Text Channel
+    permsMember = txtChannel.overwrites_for(role)
+    permsMember.send_messages=None
+    await txtChannel.set_permissions(role, overwrite=permsMember)
+    permsEveryone = txtChannel.overwrites_for(guild.default_role)
+    permsEveryone.send_messages=None
+    await txtChannel.set_permissions(guild.default_role, overwrite=permsEveryone)
+    button.disabled=True
 
 #Voice State Listeners
 @client.event
